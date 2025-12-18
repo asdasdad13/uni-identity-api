@@ -1,6 +1,10 @@
 from django.db import models
+from django.contrib.auth.models import User
+
+from django.conf import settings
 
 class Identity(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     legal_forenames = models.CharField( max_length=200,
                                         help_text='All given names and middle names exactly as they appear on the official ID.',
                                         null=True,

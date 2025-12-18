@@ -1,13 +1,18 @@
 from rest_framework import serializers
 from .models import Identity
 
+class FullIdentitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Identity
+        fields = '__all__'
+
 class IdentityNameSerializer(serializers.ModelSerializer):
     # custom field that will change based on context
     display_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Identity
-        fields = ['id', 'display_name']
+        fields = ['display_name']
 
     def get_display_name(self, obj):
         # access the context passed from the view
