@@ -1,0 +1,15 @@
+<div>
+  <h3>Simulation: Finance System</h3>
+  <button hx-get="/api/user/1/name?context=payroll" hx-target="#finance-result">
+    Fetch Name for Payroll
+  </button>
+  <div id="finance-result"></div>
+
+  <hr>
+
+  <h3>Simulation: LMS</h3>
+  <button hx-get="/api/user/1/name?context=lms" hx-target="#lms-result">
+    Fetch Name for Class Roster
+  </button>
+  <div id="lms-result"></div>
+</div>

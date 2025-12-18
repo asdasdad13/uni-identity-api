@@ -1,0 +1,20 @@
+from rest_framework import serializers
+from .models import Identity
+
+class IdentityNameSerializer(serializers.ModelSerializer):
+    # custom field that will change based on context
+    display_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Identity
+        fields = ['id', 'display_name']
+
+    def get_display_name(self, obj):
+        # access the context passed from the view
+        request_context = self.context.get('request_context')
+        
+        if request_context == 'payroll':
+            # return Combined legal name
+            return f"{obj.legal_forenames} {obj.legal_surname}"
+        # other contexts
+        return obj.preferred_name
