@@ -1,7 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
   <head></head>
-  <body>
+    <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    {% if user.is_authenticated %}
+        <p>Logged in as: {{ user.username }}</p>
+        <form action="{% url 'logout' %}?next=/" method="post">
+            {% csrf_token %}
+            <button type="submit">Logout</button>
+        </form>
+    {% else %}
+        <p>You are not logged in.</p>
+        <h2>DUMMY ACCOUNTS FOR PROTOTYPE TESTING ONLY. Hardcoded login</h2>
+        <a href="{% url 'login_js' %}">Log In as Jane</a>
+        <a href="{% url 'login_jm' %}">Log In as John</a>
+    {% endif %}
     <h1>
         Interesting API endpoints
     </h1>
@@ -17,6 +29,9 @@
         </li>
         <li>
             <a href="http://127.0.0.1:8000/api/identity/1/name?context=payroll">http://127.0.0.1:8000/api/identity/1/name?context=payroll</a>
+        </li>
+        <li>
+            <a href="{% url 'home' %}">{% url 'home' %}</a>
         </li>
     </ul>
   </body>

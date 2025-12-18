@@ -1,15 +1,27 @@
-<div>
-  <h3>Simulation: Finance System</h3>
-  <button hx-get="/api/user/1/name?context=payroll" hx-target="#finance-result">
-    Fetch Name for Payroll
-  </button>
-  <div id="finance-result"></div>
+{% load django_htmx %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webpage Title</title>
+    {% htmx_script %}
+</head>
+<body>
+    <div>
+      <h3>Simulation: Finance System</h3>
+      <button hx-get="/api/identity/1/name?context=payroll" hx-target="#finance-result">
+      Fetch name for Payroll
+      </button>
+      <div id="finance-result"></div>
 
-  <hr>
+      <hr>
 
-  <h3>Simulation: LMS</h3>
-  <button hx-get="/api/user/1/name?context=lms" hx-target="#lms-result">
-    Fetch Name for Class Roster
-  </button>
-  <div id="lms-result"></div>
-</div>
+      <h3>Simulation: LMS</h3>
+      <button hx-get="/api/identity/1/name?context=lms" hx-target="#lms-result">
+      Fetch name for Class Roster
+      </button>
+      <div id="lms-result"></div>
+    </div>
+</body>
+</html>

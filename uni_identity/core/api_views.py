@@ -13,6 +13,10 @@ from .permissions import *
 @permission_classes([IsHRAdminOrOwner])
 def full_identity(request, user_id):
     target_identity = get_object_or_404(Identity, pk=user_id)
+    permission = IsHRAdminOrOwner()
+    if not permission.has_object_permission(request, None, target_identity):
+        return Response({"detail": "You do not have permission to view this record."}, status=403)
+
     serializer = FullIdentitySerializer(target_identity)
     return Response(serializer.data)
 
@@ -24,9 +28,6 @@ def display_name(request, user_id):
     request_context = request.query_params.get('context', 'default')
 
     # pass context and identity values to serialiser
-    serializer = IdentityNameSerializer(
-        identity, 
-        context={'request_context': request_context}
-    )
+    serializer = IdentityNameSerializer(identity, context={'request_context': request_context})
     
     return Response(serializer.data)
