@@ -1,17 +1,18 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 
-from .models import *
-from .serializers import *
-from .permissions import *
+from .models import Identity
+from .serializers import FullIdentitySerializer, IdentityNameSerializer
+from .permissions import IsOwner, IsHRAdminOrOwner
 
 # The default permission for all endpoints is authenticated users only. No public viewing is allowed.
+
 
 @api_view(['GET'])
 @permission_classes([IsHRAdminOrOwner])
 def full_identity(request, user_id):
+    """Endpoint to return all attributes in an Identity object."""
     target_identity = get_object_or_404(Identity, pk=user_id)
     permission = IsHRAdminOrOwner()
     if not permission.has_object_permission(request, None, target_identity):
@@ -20,8 +21,10 @@ def full_identity(request, user_id):
     serializer = FullIdentitySerializer(target_identity)
     return Response(serializer.data)
 
+
 @api_view(['GET'])
 def display_name(request, user_id):
+    """Endpoint to return the display name from an Identity object."""
     identity = get_object_or_404(Identity, pk=user_id)
 
     # get the context from the request

@@ -1,12 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .views import *
+from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 # hardcoded logins
-from .models import *
-from django.contrib.auth import login, authenticate
+from .models import Identity
+
 
 def index(request):
     return render(request, 'index.html')
+    
 
 def login_js(request):
     """
@@ -17,6 +18,7 @@ def login_js(request):
 
     return redirect('index')
 
+
 def login_jm(request):
     """
     PROTOTYPE USE ONLY, VERY UNSAFE
@@ -25,6 +27,7 @@ def login_jm(request):
     login(request, user)
 
     return redirect('index')
+
 
 @login_required
 def home(request): # sample page display legal and preferred name

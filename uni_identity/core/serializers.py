@@ -1,10 +1,12 @@
 from rest_framework import serializers
 from .models import Identity
 
+
 class FullIdentitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Identity
         fields = '__all__'
+
 
 class IdentityNameSerializer(serializers.ModelSerializer):
     # custom field that will change based on context
