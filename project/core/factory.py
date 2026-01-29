@@ -45,9 +45,49 @@ class IdentityFactory(factory.django.DjangoModelFactory):
     )
     status = "STU"
 
+    # Automatically create profile on creation of Identity
+    @factory.post_generation
+    def create_profile(obj, create, extracted, **kwargs):
+        if not create:
+            return
+        
+        if not extracted:
+            return
+        
+        ProfileFactory(identity=obj)
+
+    # Automatically create at least 1 role on creation of Identity 
+    @factory.post_generation
+    def create_roles(obj, create, extracted, **kwargs):
+        if not create:
+            return
+        
+        if extracted:
+            # A number was passed in as argument while creating
+            for _ in range(extracted):
+                RolesAndAffiliationsFactory(identity=obj)
+
+        else:   # Default behaviour: always create at least one role
+            RolesAndAffiliationsFactory(identity=obj)
+
+
 class ProfileFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Profile
 
-    user = factory.SubFactory(IdentityFactory)
+    identity = factory.SubFactory(IdentityFactory)
+    # Optional columns
     preferred_name = "Joanna"
+    name_type = 'Preferred name'
+
+    # Dynamically created abbreviated_name
+
+class RolesAndAffiliationsFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = RolesAndAffiliations
+
+    identity = factory.SubFactory(IdentityFactory)
+    role_name = 'UG'
+    affiliation_type = 'COURSE'
+    affiliation_id = 'CS_UG_2024'
+    is_active = True
