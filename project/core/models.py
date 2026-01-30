@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, IntegrityError, transaction
 from django.conf import settings
 from django.contrib.auth.models import User
 
@@ -82,21 +82,25 @@ class Identity(models.Model):
         return CHECK_DIGITS[weighted_sum % 13]
 
     def save(self, **kwargs):
-        if not self.institutional_id:
+        if not self.institutional_id:   # Generate only on creation of record
             # Generate a string like 'STU2025000001A'.
-            year_prefix: str = str(self.effective_date.year)
+            year_prefix = str(self.effective_date.year)
             
             # Count how many identities already exist with this year's cohort.
-            count: int = Identity.objects.filter(institutional_id__contains=year_prefix).count()
-            sequence_number: int = count + 1
-            digits: str = f"{sequence_number:06d}"     # 000001, 012345, 123456, ...
+            count = Identity.objects.filter(institutional_id__contains=year_prefix).count()
+            sequence_number = count + 1
+            digits = f"{sequence_number:06d}"     # 000001, 012345, 123456, ...
 
             check_digit = str(self.calculate_check_digit("U", digits))
             self.institutional_id = f"{self.status}{year_prefix}{digits}{check_digit}"
+                        
         super().save(**kwargs)
     
     class Meta:
         verbose_name_plural = "Identities"
+
+    def __str__(self):
+        return self.full_name
 
 
 class Profile(models.Model):
@@ -123,6 +127,9 @@ class Profile(models.Model):
         initials = '. '.join(forename[0] for forename in forenames.split(' '))
         surname = self.identity.legal_surname
         return f"{initials}. {surname}"
+    
+    def __str__(self):
+        return self.preferred_name
     
 
 class RolesAndAffiliations(models.Model):
@@ -160,3 +167,6 @@ class RolesAndAffiliations(models.Model):
         null=False,
         blank=False,
         )
+    
+    def __str__(self):
+        return self.role_name

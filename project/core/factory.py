@@ -91,3 +91,28 @@ class RolesAndAffiliationsFactory(factory.django.DjangoModelFactory):
     affiliation_type = 'COURSE'
     affiliation_id = 'CS_UG_2024'
     is_active = True
+
+
+class CompleteIdentityFactory(IdentityFactory):
+    # Automatically create profile on creation of Identity
+    @factory.post_generation
+    def create_profile(obj, create, extracted, **kwargs):
+        if not create:
+            return
+        
+        if extracted:
+            ProfileFactory(identity=obj)
+
+    # Automatically create at least 1 role on creation of Identity 
+    @factory.post_generation
+    def create_roles(obj, create, extracted, **kwargs):
+        if not create:
+            return
+        
+        if extracted:
+            # A number was passed in as argument while creating
+            for _ in range(extracted):
+                RolesAndAffiliationsFactory(identity=obj)
+
+        else:   # Default behaviour: always create at least one role
+            RolesAndAffiliationsFactory(identity=obj)

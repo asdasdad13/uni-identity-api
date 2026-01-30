@@ -14,6 +14,7 @@ class IdentityTestCase(TestCase):
             legal_surname = 'Doe',
             effective_date = parse_date('2025-01-01')
         )
+        self.i2 = IdentityFactory.create()
 
     @tag("database")
     def test_identity_pk(self):
@@ -25,7 +26,7 @@ class IdentityTestCase(TestCase):
         identity: QuerySet = Identity.objects.get(pk=self.i1.pk)
         self.assertTrue(identity)
 
-    @tag("fields")
+    @tag("database")
     def test_identity_has_correct_fields(self):
         identity: QuerySet = Identity.objects.get(pk=self.i1.pk)
         self.assertEqual(self.i1.legal_forenames, identity.legal_forenames)
@@ -34,8 +35,10 @@ class IdentityTestCase(TestCase):
         expected_full_name: str = " ".join([self.i1.legal_forenames, self.i1.legal_surname])
         self.assertEqual(expected_full_name, identity.full_name)
 
+    @tag("database")
     def test_identity_institutional_id_generation(self):
         self.assertEqual(self.i1.institutional_id, 'STU2025000001W')
+        self.assertNotEqual(self.i1.institutional_id, self.i2.institutional_id)
 
 
 class ProfileTestCase(TestCase):
@@ -45,7 +48,6 @@ class ProfileTestCase(TestCase):
             legal_forenames = 'John',
             legal_surname = 'Doe',
             effective_date = parse_date('2025-01-01'),
-            create_profile=False,   # Create one manually below
         )
 
         self.p1 = ProfileFactory.create(
@@ -127,8 +129,8 @@ class ProfileTestCase(TestCase):
 
 class RolesAndAffiliationsTestCase(TestCase):
     def setUp(self):
-        self.i1 = IdentityFactory.create()
-        self.i2 = IdentityFactory.create(create_roles=2)
+        self.i1 = CompleteIdentityFactory.create()
+        self.i2 = CompleteIdentityFactory.create(create_roles=2)
         
     @tag("database")
     def test_roles_exist(self):
