@@ -1,32 +1,21 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm, BaseUserCreationForm
+
 # hardcoded logins
 from .models import Identity
 
 
 def index(request):
     return render(request, 'index.html')
-    
-
-def login_js(request):
-    """
-    PROTOTYPE USE ONLY, VERY UNSAFE
-    """ 
-    user = User.objects.get(username='js')
-    login(request, user)
-
-    return redirect('index')
 
 
-def login_jm(request):
-    """
-    PROTOTYPE USE ONLY, VERY UNSAFE
-    """
-    user = User.objects.get(username='jm')
-    login(request, user)
-
-    return redirect('index')
+def student(request):
+    if request.user.is_authenticated:
+        return render(request, 'home.html')
+    else:
+        return render(request, 'student.html')
 
 
 @login_required
