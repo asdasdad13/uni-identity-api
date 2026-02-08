@@ -11,13 +11,6 @@ def index(request):
     return render(request, 'index.html')
 
 
-def student(request):
-    if request.user.is_authenticated:
-        return render(request, 'home.html')
-    else:
-        return render(request, 'student.html')
-
-
 @login_required
 def home(request): # sample page display legal and preferred name
     try:

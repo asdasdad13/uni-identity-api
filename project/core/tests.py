@@ -3,6 +3,7 @@ from django.utils.dateparse import parse_date
 
 from .models import *
 from .factory import *
+import datetime
 
 
 # Models
@@ -37,7 +38,9 @@ class IdentityTestCase(TestCase):
 
     @tag("database")
     def test_identity_institutional_id_generation(self):
-        self.assertEqual(self.i1.institutional_id, 'STU2025000001W')
+        year_prefix = str(datetime.datetime.now().year)
+
+        self.assertEqual(self.i1.institutional_id, f'STU{year_prefix}000001W')
         self.assertNotEqual(self.i1.institutional_id, self.i2.institutional_id)
 
 
