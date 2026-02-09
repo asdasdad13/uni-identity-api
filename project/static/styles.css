@@ -49,7 +49,7 @@ ul, .helptext {
   transform: translateY(-2px);
 }
 
-.errorlist {
+.errorlist, div.error-box p {
   color: red;
 }
 

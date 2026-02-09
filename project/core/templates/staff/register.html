@@ -1,11 +1,10 @@
 {% extends 'base.html' %}
 
-{% block title %}Student Registration{% endblock %}
+{% block title %}Staff Registration{% endblock %}
 
 {% block content %}
 
-
-<div class="btn"><a href="{% url 'identities:register' %}">Return to home</a></div>
+<div class="btn"><a href="{% url 'core:register' %}">Return to home</a></div>
 {% if messages %}
     {% for message in messages %}
         <p>{{ message }}</p>

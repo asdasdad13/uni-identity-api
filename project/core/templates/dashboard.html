@@ -29,7 +29,7 @@
 <footer>
     <div class="navbar">
         <span>University System</span>
-        <form method="post" action="{% url 'identities:logout' %}" id="logout-form">
+        <form method="post" action="{% url 'core:logout' %}" id="logout-form">
             {% csrf_token %}
             <button type="submit" class="logout-btn">Sign Out</button>
         </form>
