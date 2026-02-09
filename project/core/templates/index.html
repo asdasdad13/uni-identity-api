@@ -1,2 +1,11 @@
-<h1>Welcome to ABC University web platform</h1>
-<p>Access the <a href="{% url 'student:index' %}">Student Portal</a></p>
+{% extends 'base.html' %}
+
+{% block title %}University Identity Portal{% endblock %}
+
+{% block content %}
+<p>The website will undergo maintenance at 7PM!</p>
+<div>
+    <div class="btn"><a href="{% url 'identities:login' %}">Login</a></div>
+    <div class="btn"><a href="{% url 'identities:register' %}">Register</a></div>
+</div>
+{% endblock %}

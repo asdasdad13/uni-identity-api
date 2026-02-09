@@ -13,14 +13,17 @@ class StudentCreationForm(BaseUserCreationForm):
     # Get student name
     forename = forms.CharField(max_length=200, required=True)
     surname = forms.CharField(max_length=100, required=True)
-    preferred_name = forms.CharField(max_length = 200)
+    preferred_name = forms.CharField(max_length=200, required=False)
     name_type = forms.ChoiceField(
         choices=(
+            ('--', '--'),
             ("Preferred name", "Preferred name"),
             ("Maiden Name", "Maiden Name"),
             ("Professional Alias", "Professional Alias"),
             ("Nickname", "Nickname"),
-        ))
+        ),
+        required=False
+    )
     date_of_birth = forms.DateField(required=True, widget=DateInput())
 
     class Meta:
@@ -38,3 +41,7 @@ class StudentCreationForm(BaseUserCreationForm):
             self.add_error('name_type', "Please specify name type.")
         
         return cleaned_data
+    
+class StaffCreationForm(StudentCreationForm):
+    class Meta(StudentCreationForm.Meta):
+        pass

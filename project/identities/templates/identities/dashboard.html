@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>Welcome, {{ name }}</h1>
+    <p>
+        <span class="badge">{{ role }}</span> <small style="color: #666; margin-left: 10px;">ID: {{ id }}</small>
+    </p>
+    
+    <hr>
+    
+    {% if status_code == 'STA' %}
+        <h3>Staff Administration</h3>
+        <ul>
+            <li>Search Student Records</li>
+            <li>Audit Identity Sequences</li>
+        </ul>
+    {% else %}
+        <h3>Student Services</h3>
+        <ul>
+            <li>View My Enrolment</li>
+            <li>Request Identity Letter</li>
+        </ul>
+    {% endif %}
+</div>
+
+<footer>
+    <div class="navbar">
+        <span>University System</span>
+        <form method="post" action="{% url 'identities:logout' %}" id="logout-form">
+            {% csrf_token %}
+            <button type="submit" class="logout-btn">Sign Out</button>
+        </form>
+    </div>
+</footer>
+{% endblock %}

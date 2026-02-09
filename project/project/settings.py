@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core',
     'api',
-    'student',
+    'identities',
     'rest_framework',
     'django_htmx',
 ]
@@ -133,8 +133,9 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
-LOGIN_REDIRECT_URL = ''
-LOGOUT_REDIRECT_URL = ''
+LOGIN_URL = 'identities:login'
+LOGIN_REDIRECT_URL = 'identities:dashboard'
+LOGOUT_REDIRECT_URL = 'core:index'
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
