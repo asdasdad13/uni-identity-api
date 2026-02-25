@@ -16,12 +16,14 @@
         <ul>
             <li>Search Student Records</li>
             <li>Audit Identity Sequences</li>
+            <li><a href="{% url 'core:staff_approval_list' %}">Approve student applications</a></li>
         </ul>
     {% else %}
         <h3>Student Services</h3>
         <ul>
-            <li>View My Enrolment</li>
+            <li><a href="{% url 'core:enrolment' %}">View My Enrolment</a></li>
             <li>Request Identity Letter</li>
+            <li><a href="{% url 'core:apply_course' %}">Apply to a course</a></li>
         </ul>
     {% endif %}
 </div>

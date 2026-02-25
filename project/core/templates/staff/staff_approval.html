@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Pending Course & Role Approvals{% endblock %}
+
+{% block content %}
+
+<h1>Pending Course & Role Approvals</h1>
+
+<table>
+    <thead>
+        <tr>
+            <th>Student</th>
+            <th>ID</th>
+            <th>Detail</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for req in requests %}
+        <tr>
+            <td>{{ req.identity.full_name }}</td>
+            <td>{{ req.identity.institutional_id }}</td>
+            <td>{{ req.affiliation_id }}</td>
+            <td>
+                <form method='post' action='{% url "core:approve_affiliation" req.id %}'>
+                    {% csrf_token %}
+                    <button class='btn' type='submit' name="action" value="approve">Approve</button>
+                    <button class='btn' type='submit' name="action" value="reject">Reject</button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan='5'>No pending requests found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<a href='{% url "core:dashboard" %}'>Back to Dashboard</a>
+
+{% endblock %}

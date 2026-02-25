@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}Request affiliation{% endblock %}
+
+{% block content %}
+
+<h1>Request affiliation</h1>
+
+<div class="btn"><a href="{% url 'core:dashboard' %}">Return to dashboard</a></div>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        {{ form.as_p }}
+    </div>
+    <button type="submit" class="btn">Submit application</button>
+</form>
+
+{% endblock %}

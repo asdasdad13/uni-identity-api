@@ -32,22 +32,6 @@ ul, .helptext {
   transition: transform 0.2s;
   border: 2px solid transparent;
 }
-.btn-student {
-  background-color: #3498db;
-  color: white;
-}
-.btn-student:hover {
-  background-color: #2980b9;
-  transform: translateY(-2px);
-}
-.btn-staff {
-  background-color: #2ecc71;
-  color: white;
-}
-.btn-staff:hover {
-  background-color: #27ae60;
-  transform: translateY(-2px);
-}
 
 .errorlist, div.error-box p {
   color: red;
