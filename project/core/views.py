@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import login
 from django.views.generic.edit import CreateView
@@ -11,6 +11,7 @@ from .forms import *
 from django.urls import reverse_lazy
 from core.models import Identity, Profile, RolesAndAffiliations
 import datetime
+import time
 
 import re
 
@@ -44,26 +45,24 @@ def dashboard(request):
         identity = Identity.objects.get(user=request.user)
         # Try to get profile, handle the case where it might not exist
         profile = Profile.objects.filter(identity=identity).first()
-        
-        # Determine display name
-        if profile and profile.preferred_name:
-            preferred_name = profile.preferred_name
-        else:
-            preferred_name = identity.full_name
+        affiliations = identity.affiliations.all()
 
         context = {
-            'name': preferred_name,
+            'name': profile.preferred_name if profile else identity.full_name,
             'role': identity.get_status_display(),
             'status_code': identity.status,
-            'id': identity.institutional_id
+            'id': identity.institutional_id,
+            'affiliations': affiliations,
         }
     except Identity.DoesNotExist:
-        # Fallback for superusers who might not have an Identity record
+        # Fallback for superusers who might not have an Identity record,
+        # e.g. admins
         context = {
             'name': request.user.username,
             'role': "Administrator",
             'status_code': "ADM",
-            'id': "N/A"
+            'id': "N/A",
+            'affiliations': affiliations,
         }
 
     return render(request, 'dashboard.html', context)
@@ -144,7 +143,7 @@ class StaffRegisterView(BaseRegisterView):
 
 class CreateAffiliationView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     """Student sends application form to be registered
-    as an undergraduate in some course. This simulates official
+    as an undergraduate in some module. This simulates official
     student applications, but there isn't an office for this
     project.
     """
@@ -158,12 +157,18 @@ class CreateAffiliationView(LoginRequiredMixin, UserPassesTestMixin, CreateView)
         return is_student(self.request.user)
 
     def form_valid(self, form):
+        time.sleep(1)   # Artificial delay
         self.object = form.save(commit=False)
         self.object.identity = self.request.user.identity
-        self.object.role_name='UG', # Undergraduate
+        self.object.role_name='UG' # Undergraduate
         self.object.is_active=False     # Simulates "Pending Approval"
 
         self.object.save()
+
+        # If HTMX request, return a fragment instead of redirect
+        if self.request.htmx:
+            return render(self.request, 'student/partials/submission_success.html')
+
         return super().form_valid(form)
     
 
@@ -184,6 +189,7 @@ def enrolment(request):
 def staff_approval_list(request):
     """Lists all pending (inactive) role/affiliation requests."""
     pending_requests = RolesAndAffiliations.objects.filter(is_active=False)
+
     return render(request, 'staff/staff_approval.html', {
         'requests': pending_requests
     })
@@ -192,14 +198,14 @@ def staff_approval_list(request):
 @user_passes_test(is_staff)
 def approve_affiliation(request, affiliation_id):
     """Action to set a specific affiliation to active."""
-    if request.method == 'POST':
+    if request.htmx:
         affiliation = get_object_or_404(RolesAndAffiliations, id=affiliation_id)
 
         match request.POST.get("action"):
             case "approve":
                 affiliation.is_active = True
                 affiliation.save()
+                return render(request, 'staff/partials/approved.html')
             case "reject":
                 affiliation.delete()
-        
-        return redirect('core:staff_approval_list')
+                return render(request, 'staff/partials/rejected.html')

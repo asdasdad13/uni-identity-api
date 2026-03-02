@@ -12,20 +12,36 @@
     <hr>
     
     {% if status_code == 'STA' %}
-        <h3>Staff Administration</h3>
+        <h2>Staff Administration</h2>
         <ul>
             <li>Search Student Records</li>
             <li>Audit Identity Sequences</li>
             <li><a href="{% url 'core:staff_approval_list' %}">Approve student applications</a></li>
         </ul>
     {% else %}
-        <h3>Student Services</h3>
+        <h2>Student Services</h2>
         <ul>
             <li><a href="{% url 'core:enrolment' %}">View My Enrolment</a></li>
             <li>Request Identity Letter</li>
-            <li><a href="{% url 'core:apply_course' %}">Apply to a course</a></li>
+            <li><a href="{% url 'core:apply_module' %}">Apply to a course</a></li>
         </ul>
     {% endif %}
+    <div>
+        <h3>Your affiliations</h3>
+        <ul>
+            {% for aff in affiliations %}
+                {% if not aff.is_active %}
+                    <li class="helptext">
+                        {{ aff.affiliation_id }} (⏳ Pending staff approval)
+                    </li>
+                {% else %}
+                    <li>
+                        {{ aff.affiliation_id }}
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
 </div>
 
 <footer>

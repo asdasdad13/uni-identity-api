@@ -1,3 +1,4 @@
+{% load django_htmx %}
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -5,8 +6,9 @@
     <meta charset="UTF-8">
     <title>{% block title %}University Identity Portal{% endblock %}</title>
     <link rel="stylesheet" type="text/css" href="{% static 'styles.css' %}">
+    {% htmx_script %}
 </head>
-<body>
+<body hx-headers='{"x-csrftoken": "{{ csrf_token }}"}'>
     <div class="container">
         <main>
             {% block content %}

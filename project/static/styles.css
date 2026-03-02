@@ -1,6 +1,5 @@
 body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f4f7f6;
   display: flex;
   justify-content: center;
   flex-direction: column;
@@ -9,26 +8,25 @@ body {
   margin: 0;
 }
 .container {
-  background: white;
   padding: 2.5rem;
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  max-width: 500px;
+  max-width: 700px;
   width: 100%;
+  min-height: 100vh;
 }
 .portal-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
-ul, .helptext {
+.helptext {
   color: grey;
 }
 .btn {
-  padding: 1rem;
+  padding: 0.5rem;
   text-decoration: none;
   border-radius: 5px;
-  font-weight: bold;
+  /* font-weight: bold; */
   transition: transform 0.2s;
   border: 2px solid transparent;
 }
@@ -75,4 +73,85 @@ ul, .helptext {
 
 #logout-form {
   margin: 0;
+}
+
+table {
+    border-collapse: collapse;
+  margin: 25px 0;
+  font-size: 0.9em;
+  font-family: sans-serif;
+  min-width: 400px;
+  width: 100%;
+}
+
+table thead tr {
+  background-color: darkgray;
+  color: #ffffff;
+  text-align: left;
+}
+
+table th,
+table td {
+  padding: 12px 15px;
+}
+
+table tbody tr {
+  border-bottom: 1px solid lightgrey;
+  background-color: white;
+  transition: background-color 0.2s ease;
+}
+
+table tbody tr:nth-of-type(even) {
+  background-color: lightgrey;
+}
+
+table tbody tr:last-of-type {
+  border-bottom: 2px solid lightgrey;
+}
+
+table tbody tr:hover {
+  background-color: lightgrey;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+button[value="approve"] {
+  background-color: rgb(112, 204, 112);
+}
+
+button[value="reject"] {
+  background-color: rgb(228, 65, 65);
+}
+
+.loading-ring {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(0,0,0,0.1);
+  border-radius: 50%;
+  border-top-color: #007bff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+#submit {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.action-message {
+  opacity: 0.5;
 }

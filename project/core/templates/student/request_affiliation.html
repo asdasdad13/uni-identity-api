@@ -3,17 +3,24 @@
 {% block title %}Request affiliation{% endblock %}
 
 {% block content %}
-
 <h1>Request affiliation</h1>
 
 <div class="btn"><a href="{% url 'core:dashboard' %}">Return to dashboard</a></div>
 
-<form method="post">
+<form hx-post="{% url 'core:apply_module' %}"
+    hx-target="#submit-btn"
+    hx-swap="outerHTML"
+    hx-indicator="#spinner">
     {% csrf_token %}
     <div class="form-group">
         {{ form.as_p }}
     </div>
-    <button type="submit" class="btn">Submit application</button>
+    <div id="submit">
+        <button id="submit-btn" type="submit" class="btn">Submit application</button>
+        <div id="spinner" class="htmx-indicator">
+            <div class="loading-ring"></div>
+        </div>
+    </div>
 </form>
 
 {% endblock %}

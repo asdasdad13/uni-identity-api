@@ -20,7 +20,7 @@ class Identity(models.Model):
         help_text = ("Automatically generated."),
         unique = True,
         editable = False,
-        default = None,
+        null=True,
     )
     legal_forenames = models.CharField(
         max_length = 200,
@@ -54,7 +54,7 @@ class Identity(models.Model):
         blank = False,
         default = None,
     )
-
+    
     @property
     def full_name(self):
         """Derived attribute from concatenating legal_forename and legal_surname."""
@@ -68,13 +68,7 @@ class Identity(models.Model):
             # More prefixes and weights can be added here in the future...
         }
 
-        CHECK_DIGITS = {
-            0: 'Y',     1: 'X',     2: 'W',
-            3: 'U',     4: 'R',     5: 'N',
-            6: 'M',     7: 'L',     8: 'J',
-            9: 'H',     10: 'E',    11: 'A',
-            12: 'B'
-        }
+        CHECK_DIGITS = "YXWURNMLJHEAB"
         
         # 1a. Remove the third digit.
         sliced_digits: str = digits[:2] + digits[3:]  # e.g. 123456 -> 12456
@@ -120,7 +114,11 @@ class Identity(models.Model):
 class Profile(models.Model):
     """Non-critical information about a person's identity in the university."""
 
-    identity = models.OneToOneField(Identity, on_delete = models.CASCADE)
+    identity = models.OneToOneField(
+        Identity,
+        on_delete = models.CASCADE,
+        related_name = 'profile',
+    )
     preferred_name = models.CharField(
         max_length = 200,
         help_text = 'Given by the user.',
@@ -150,7 +148,11 @@ class RolesAndAffiliations(models.Model):
     """Link table modelling user's current roles and associations.
     Important to determine ABAC access decisions."""
 
-    identity = models.ForeignKey(Identity, on_delete = models.CASCADE)
+    identity = models.ForeignKey(
+        Identity,
+        on_delete = models.CASCADE,
+        related_name = 'affiliations',
+    )
     role_name = models.CharField(
         choices={
             'UG': 'Undergraduate',
@@ -167,6 +169,7 @@ class RolesAndAffiliations(models.Model):
         choices={
             "CLUB": "Club",
             "COURSE": "Course",
+            "MODULE": "Module",
             "DEPARTMENT": "Department"
         }
     )
