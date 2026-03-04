@@ -16,23 +16,34 @@
         <ul>
             <li>Search Student Records</li>
             <li>Audit Identity Sequences</li>
-            <li><a href="{% url 'core:staff_approval_list' %}">Approve student applications</a></li>
+            <li><a href="{% url 'core:apply_affiliation' %}">Apply to a department</a></li>
         </ul>
-    {% else %}
+    {% elif status_code == 'STU' %}
         <h2>Student Services</h2>
         <ul>
             <li><a href="{% url 'core:enrolment' %}">View My Enrolment</a></li>
             <li>Request Identity Letter</li>
-            <li><a href="{% url 'core:apply_module' %}">Apply to a course</a></li>
+            <li><a href="{% url 'core:apply_affiliation' %}">Apply to a module</a></li>
+        </ul>
+    {% else %}
+        <h2>Admin Services</h2>
+        <ul>
+            <li><a href="{% url 'core:affiliation_approvals' %}">Approve staff and student affiliations</a></li>
+            <li><a href="{% url 'admin:index' %}">Admin panels</a></li>
         </ul>
     {% endif %}
     <div>
         <h3>Your affiliations</h3>
+
+        {% if not affiliations %}
+        <p class="helptext">No affiliations found.</p>
+        {% endif %}
+
         <ul>
             {% for aff in affiliations %}
                 {% if not aff.is_active %}
                     <li class="helptext">
-                        {{ aff.affiliation_id }} (⏳ Pending staff approval)
+                        {{ aff.affiliation_id }} (⏳ Pending admin approval)
                     </li>
                 {% else %}
                     <li>

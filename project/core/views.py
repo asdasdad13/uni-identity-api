@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.http import HttpResponse
+from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render, redirect
 from django.contrib.auth import login
 from django.views.generic.edit import CreateView
@@ -12,8 +12,9 @@ from django.urls import reverse_lazy
 from core.models import Identity, Profile, RolesAndAffiliations
 import datetime
 import time
-
 import re
+from .utils import log_admin_action
+from django.contrib.admin.models import CHANGE, DELETION
 
 # Authentication levels for views
 def is_staff(user):
@@ -42,9 +43,12 @@ def register(request):
 @login_required
 def dashboard(request):
     try:
-        identity = Identity.objects.get(user=request.user)
+        identity = (Identity.objects
+                    .select_related('profile')
+                    .prefetch_related('affiliations')
+                    .get(user=request.user))
         # Try to get profile, handle the case where it might not exist
-        profile = Profile.objects.filter(identity=identity).first()
+        profile = getattr(identity, 'profile', None)
         affiliations = identity.affiliations.all()
 
         context = {
@@ -62,7 +66,6 @@ def dashboard(request):
             'role': "Administrator",
             'status_code': "ADM",
             'id': "N/A",
-            'affiliations': affiliations,
         }
 
     return render(request, 'dashboard.html', context)
@@ -142,27 +145,31 @@ class StaffRegisterView(BaseRegisterView):
 
 
 class CreateAffiliationView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
-    """Student sends application form to be registered
+    """User sends application form to be registered
     as an undergraduate in some module. This simulates official
     student applications, but there isn't an office for this
     project.
     """
+    # Handles GET
     model = RolesAndAffiliations
     fields = ['affiliation_type', 'affiliation_id']
-    template_name = 'student/request_affiliation.html'
-    success_url = reverse_lazy('core:dashboard')
-    # TODO: HTMX to show success message
+    template_name = 'request_affiliation.html'
 
     def test_func(self):
-        return is_student(self.request.user)
+        return is_student(self.request.user) or is_staff(self.request.user)
 
+    # Handles POST
     def form_valid(self, form):
         time.sleep(1)   # Artificial delay
         self.object = form.save(commit=False)
         self.object.identity = self.request.user.identity
-        self.object.role_name='UG' # Undergraduate
-        self.object.is_active=False     # Simulates "Pending Approval"
 
+        if self.object.identity.status == 'STA':
+            self.object.role_name='UG' # Undergraduate
+        else:
+            self.object.role_name='DEPARTMENT'
+
+        self.object.is_active=False     # Simulates "Pending Approval"
         self.object.save()
 
         # If HTMX request, return a fragment instead of redirect
@@ -175,9 +182,9 @@ class CreateAffiliationView(LoginRequiredMixin, UserPassesTestMixin, CreateView)
 @user_passes_test(is_student)
 def enrolment(request):
     """Student view of enrolment status and information."""
-    identity = Identity.objects.get(user=request.user)
-    ra = RolesAndAffiliations.objects.filter(identity=identity)
-    affiliations = ra.values('affiliation_id', 'affiliation_type')
+    affiliations = (RolesAndAffiliations.objects
+          .filter(identity__user=request.user)
+          .values('affiliation_id', 'affiliation_type'))
     context = {
         'affiliations': affiliations
     }
@@ -185,17 +192,18 @@ def enrolment(request):
     return render(request, 'student/enrolment.html', context)
 
 
-@user_passes_test(is_staff)
-def staff_approval_list(request):
+# Admins can view and approve affiliation requests 
+@staff_member_required
+def affiliation_approvals(request):
     """Lists all pending (inactive) role/affiliation requests."""
     pending_requests = RolesAndAffiliations.objects.filter(is_active=False)
 
-    return render(request, 'staff/staff_approval.html', {
+    return render(request, 'admin/affiliation_approval.html', {
         'requests': pending_requests
     })
 
 
-@user_passes_test(is_staff)
+@staff_member_required
 def approve_affiliation(request, affiliation_id):
     """Action to set a specific affiliation to active."""
     if request.htmx:
@@ -205,7 +213,13 @@ def approve_affiliation(request, affiliation_id):
             case "approve":
                 affiliation.is_active = True
                 affiliation.save()
-                return render(request, 'staff/partials/approved.html')
+
+                log_admin_action(request.user.id, [affiliation], CHANGE, "Approved affiliation.")
+
+                return render(request, 'admin/partials/approved.html')
+            
             case "reject":
+                log_admin_action(request.user.id, [affiliation], DELETION, "Rejected and deleted affiliation.")
+
                 affiliation.delete()
-                return render(request, 'staff/partials/rejected.html')
+                return render(request, 'admin/partials/rejected.html')

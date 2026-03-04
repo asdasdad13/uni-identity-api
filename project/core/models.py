@@ -186,3 +186,9 @@ class RolesAndAffiliations(models.Model):
     
     def __str__(self):
         return self.role_name
+    
+class PendingAffiliation(RolesAndAffiliations):
+    class Meta:
+        proxy = True
+        verbose_name = "Pending Approval"
+        verbose_name_plural = "Pending Approvals"

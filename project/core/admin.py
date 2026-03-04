@@ -1,55 +1,72 @@
 from django.contrib import admin
 from .models import *
+from .utils import log_admin_action
+from django.contrib.admin.models import CHANGE, DELETION
 
+
+class RolesAndAffiliationsInline(admin.TabularInline):
+    model = RolesAndAffiliations
+    fields = ('affiliation_id', 'affiliation_type', 'role_name', 'is_active')
 
 @admin.register(Identity)
 class IdentityAdmin(admin.ModelAdmin):
-    list_display = [
+    inlines = [RolesAndAffiliationsInline]
+    list_display = (
         'id',
         'institutional_id',
         'legal_forenames',
         'legal_surname',
-        ]
-
-
-class CustomUserAdmin(admin.ModelAdmin):
-    list_select_related = ('identity', 'identity__profile')
-    list_display = [
-        'id',
-        'username', # institutional email
-        'legal_forenames',
-        'legal_surname',
         'full_name',
-        'preferred_name',
-        'name_type',
         'date_of_birth',
-        ]
-    
-    def legal_forenames(self, obj):
-        return obj.identity.legal_forenames
-    
-    def legal_surname(self, obj):
-        return obj.identity.legal_surname
-    
-    def full_name(self, obj):
-        return obj.identity.full_name
-    
-    def preferred_name(self, obj):
-        identity = getattr(obj, 'identity', None)
-        if identity:
-            profile = getattr(identity, 'profile', None)
-            return getattr(profile, 'preferred_name', None)
-        return None
 
-    def name_type(self, obj):
-        identity = getattr(obj, 'identity', None)
-        if identity:
-            profile = getattr(identity, 'profile', None)
-            return getattr(profile, 'name_type', None)
-        return None
+        'profile__preferred_name',
+        'profile__name_type',
+
+        'display_affiliations',
+    )
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('affiliations')
     
-    def date_of_birth(self, obj):
-        return obj.identity.date_of_birth
+    # Display roles and affiliations as a list of strings in the admin list view
+    @admin.display(description='Roles')
+    def display_affiliations(self, obj):
+        affiliations = [(aff.role_name,
+                      aff.affiliation_type,
+                      aff.affiliation_id,
+                      aff.is_active) for aff in obj.affiliations.all()]
+        return ', '.join(affiliations) if affiliations else '-'
+
+@admin.register(PendingAffiliation)
+class PendingAffiliationAdmin(admin.ModelAdmin):
+    list_display = ('identity', 'affiliation_type', 'affiliation_id', 'role_name')
+    list_filter = ('affiliation_type',)
+    actions = ['approve_selected', 'reject_selected']
+
+    def get_queryset(self, request):
+        # Only show the requests that are NOT active
+        return super().get_queryset(request).filter(is_active=False)
     
-admin.site.unregister(User)
-admin.site.register(User, CustomUserAdmin)
+    # Remove the default "Delete selected option"
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+    @admin.action(description="Approve selected requests")
+    def approve_selected(self, request, queryset):
+        for obj in queryset:
+            obj.is_active = True
+            obj.save()
+            log_admin_action(request.user.id, [obj], CHANGE, "Approved affiliation.")
+
+        self.message_user(request, f"Successfully approved {queryset.count()} requests.")
+
+    @admin.action(description="Reject and delete selected requests")
+    def reject_selected(self, request, queryset):
+        count = queryset.count()
+        for obj in queryset:
+            log_admin_action(request.user.id, [obj], DELETION, "Rejected and deleted affiliation.")
+            obj.delete()
+        self.message_user(request, f"Successfully rejected and removed {count} requests.")
