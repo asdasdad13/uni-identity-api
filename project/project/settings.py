@@ -11,6 +11,11 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import os
+
+# Secret environment variables during development
+from dotenv import load_dotenv
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,13 +25,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-b=^@bt$nw%ao(%$h(@p$@#i0ietq$qt+(n)wpke!4iq*wixmlg'
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -41,7 +45,6 @@ INSTALLED_APPS = [
     'api',
     'rest_framework',
     'django_htmx',
-    'rest_framework_simplejwt',
     'oauth2_provider',
 ]
 
@@ -63,10 +66,24 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
 }
 
-
+OAUTH2_PROVIDER = {
+    'SCOPES': {
+        'read': 'Read access',
+        'write': 'Write access',
+        'openid': 'OpenID Connect scope',
+        'profile': 'Access to profile information',
+        'affiliations': 'Access to course/club affiliations',
+    },
+    'OIDC_ENABLED': True,
+    'OIDC_RSA_PRIVATE_KEY': os.environ.get('OIDC_RSA_PRIVATE_KEY'),
+    'ACCESS_TOKEN_EXPIRE_SECONDS': 36000,
+    'AUTHORIZATION_CODE_EXPIRE_SECONDS': 60,
+    'OIDC_USERINFO': 'core.oidc_claims.get_custom_claims'
+}
 
 ROOT_URLCONF = 'project.urls'
 

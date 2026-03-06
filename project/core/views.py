@@ -232,3 +232,10 @@ def approve_affiliation(request, affiliation_id):
 
                 affiliation.delete()
                 return render(request, 'admin/partials/rejected.html')
+
+def test_callback_view(request):
+    code = request.GET.get('code')
+    return render(request, 'oauth/test_callback.html', {
+        'application': 'Library Card',
+        'code': code,
+    })

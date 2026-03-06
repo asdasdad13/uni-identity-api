@@ -1,0 +1,7 @@
+<h1>OAuth Callback Received</h1>
+{% if code %}
+    <p>Authorization Code: <code>{{ code }}</code></p>
+    <p>Now use this code to exchange for tokens!</p>
+{% elif error %}
+    <p>Error: {{ error }}</p>
+{% endif %}
