@@ -150,9 +150,10 @@ class CreateAffiliationView(LoginRequiredMixin, UserPassesTestMixin, CreateView)
     student applications, but there isn't an office for this
     project.
     """
+
     # Handles GET
     model = RolesAndAffiliations
-    fields = ['affiliation_type', 'affiliation_id']
+    form_class = AffiliationRequestForm
     template_name = 'request_affiliation.html'
 
     def test_func(self):
@@ -164,20 +165,28 @@ class CreateAffiliationView(LoginRequiredMixin, UserPassesTestMixin, CreateView)
         self.object = form.save(commit=False)
         self.object.identity = self.request.user.identity
 
-        if self.object.identity.status == 'STA':
-            self.object.role_name='UG' # Undergraduate
-        else:
-            self.object.role_name='DEPARTMENT'
-
         self.object.is_active=False     # Simulates "Pending Approval"
         self.object.save()
 
         # If HTMX request, return a fragment instead of redirect
         if self.request.htmx:
-            return render(self.request, 'student/partials/submission_success.html')
+            return render(self.request, 'partials/submission_success.html')
 
         return super().form_valid(form)
     
+
+def ajax_load_roles(request):
+    """A fragment loaded by HTMX for adaptive dropdown in CreateAffiliationView.
+    Triggers after an affiliation type has been selected by the user.
+    """
+    # Get user's selection
+    affiliation_type = request.GET.get('affiliation_type')
+
+    # Update role_name options in view of form
+    choices = AffiliationRequestForm.get_role_choices(affiliation_type)
+
+    return render(request, 'partials/role_dropdown_options.html', {'choices': choices})
+
 
 @user_passes_test(is_student)
 def enrolment(request):

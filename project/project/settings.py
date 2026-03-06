@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'api',
     'rest_framework',
     'django_htmx',
+    'rest_framework_simplejwt',
+    'oauth2_provider',
 ]
 
 MIDDLEWARE = [
@@ -63,6 +65,8 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
     ],
 }
+
+
 
 ROOT_URLCONF = 'project.urls'
 

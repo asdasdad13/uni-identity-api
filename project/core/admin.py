@@ -2,17 +2,19 @@ from django.contrib import admin
 from .models import *
 from .utils import log_admin_action
 from django.contrib.admin.models import CHANGE, DELETION
-
+from django.utils.html import format_html, mark_safe
 
 class RolesAndAffiliationsInline(admin.TabularInline):
     model = RolesAndAffiliations
     fields = ('affiliation_id', 'affiliation_type', 'role_name', 'is_active')
+
 
 @admin.register(Identity)
 class IdentityAdmin(admin.ModelAdmin):
     inlines = [RolesAndAffiliationsInline]
     list_display = (
         'id',
+        'user__username',
         'institutional_id',
         'legal_forenames',
         'legal_surname',
@@ -28,14 +30,25 @@ class IdentityAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related('affiliations')
     
-    # Display roles and affiliations as a list of strings in the admin list view
+    # Display roles and affiliations as a nicely formatted string in the admin list view
     @admin.display(description='Roles')
     def display_affiliations(self, obj):
-        affiliations = [(aff.role_name,
-                      aff.affiliation_type,
-                      aff.affiliation_id,
-                      aff.is_active) for aff in obj.affiliations.all()]
-        return ', '.join(affiliations) if affiliations else '-'
+        affs = obj.affiliations.all()
+
+        if not affs:
+            return '-'
+        
+        # Use format_html to include <br>
+        html_items = [format_html('<strong>{}</strong>: {} ({})',
+                                    aff.affiliation_type,
+                                    aff.affiliation_id,
+                                    aff.role_name,
+                                  )
+                      for aff in affs]
+
+        # Can use mark_safe since format_html guarantees sanitised input
+        return mark_safe("<br>".join(html_items))
+
 
 @admin.register(PendingAffiliation)
 class PendingAffiliationAdmin(admin.ModelAdmin):

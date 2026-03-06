@@ -158,6 +158,7 @@ class RolesAndAffiliations(models.Model):
             'UG': 'Undergraduate',
             'PG': 'Postgraduate',
             'CM': 'Club Member',
+            'CP': 'Club President',
             'PF': 'Professor',
             'AD': 'Admin',
         },
@@ -169,8 +170,8 @@ class RolesAndAffiliations(models.Model):
         choices={
             "CLUB": "Club",
             "COURSE": "Course",
-            "MODULE": "Module",
-            "DEPARTMENT": "Department"
+            "MOD": "Module",
+            "DEPT": "Department"
         }
     )
     affiliation_id = models.CharField(

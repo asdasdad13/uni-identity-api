@@ -10,6 +10,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('apply_affiliation/', views.CreateAffiliationView.as_view(), name='apply_affiliation'),
     path('enrolment/', views.enrolment, name='enrolment'),
+    path('ajax_load_roles/', views.ajax_load_roles, name='ajax_load_roles'),
     path('affiliation_approvals/', views.affiliation_approvals, name='affiliation_approvals'),
     path('approvals/approve/<int:affiliation_id>/', views.approve_affiliation, name='approve_affiliation'),
     path('login/', auth_views.LoginView.as_view(redirect_authenticated_user=True), name='login'),

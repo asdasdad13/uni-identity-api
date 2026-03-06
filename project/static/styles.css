@@ -155,3 +155,7 @@ button[value="reject"] {
 .action-message {
   opacity: 0.5;
 }
+
+div.form-group {
+  margin-bottom: 0.5rem;
+}
