@@ -71,18 +71,22 @@ REST_FRAMEWORK = {
 }
 
 OAUTH2_PROVIDER = {
+    'OAUTH2_VALIDATOR_CLASS': 'core.oidc.CustomOAuth2Validator',
     'SCOPES': {
         'read': 'Read access',
         'write': 'Write access',
         'openid': 'OpenID Connect scope',
-        'profile': 'Access to profile information',
-        'affiliations': 'Access to course/club affiliations',
+        'identity': 'Access to your institutional identity information, i.e. your legal name, email address, institutional ID, date of birth and status',
+        'profile': 'Access to your profile information, i.e. your preferred name',
+        'affiliations': 'Access to all your affiliations; course enrolments, club memberships, department information',
+        'affiliations:courses': 'Access your course enrolments',
+        'affiliations:clubs': 'Access your club memberships',
+        'affiliations:departments': 'Access your department information',
     },
     'OIDC_ENABLED': True,
     'OIDC_RSA_PRIVATE_KEY': os.environ.get('OIDC_RSA_PRIVATE_KEY'),
     'ACCESS_TOKEN_EXPIRE_SECONDS': 36000,
     'AUTHORIZATION_CODE_EXPIRE_SECONDS': 60,
-    'OIDC_USERINFO': 'core.oidc_claims.get_custom_claims'
 }
 
 ROOT_URLCONF = 'project.urls'
@@ -160,7 +164,6 @@ LOGOUT_REDIRECT_URL = 'core:index'
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
-    # 'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
 # Allauth specific settings for Email-based identity

@@ -234,8 +234,14 @@ def approve_affiliation(request, affiliation_id):
                 return render(request, 'admin/partials/rejected.html')
 
 def test_callback_view(request):
+    application = request.GET.get('application')
     code = request.GET.get('code')
+    error = request.GET.get('error')
+    error_description = request.GET.get('error_description')
+    
     return render(request, 'oauth/test_callback.html', {
-        'application': 'Library Card',
+        'application': application,
         'code': code,
+        'error': error,
+        'error_description': error_description,
     })
