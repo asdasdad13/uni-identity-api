@@ -8,35 +8,29 @@ import json
 BASE_URL = "http://127.0.0.1:8000"
 
 APPLICATIONS = {
-    'LMS': {
+    'LMS': {    # Preferred name
         'client_id': 'qjhxpWe3OmV4KCBAXvX2VQJLGaMkQNNqpikFz4pw',
         'client_secret': '7Umz9mUPuuozzg73vM34d0KYPye78tEOuUltnjP8H5hkva2JpRtZYXAOkYNfu6jS2OQB5TJUy0oHIq9p2TCryQYrzzilOp3t7YTJcMTZ0c4U3Np8spnaaIFOojOH5M2g',
         'redirect_uri': 'http://127.0.0.1:8000/test-callback/',
         'scopes': 'openid profile identity affiliations:courses',
     },
-    'Club Directory': {
+    'Club Directory': { # Preferred name
         'client_id': '0U1eKM5l0HpCGslKQChkw7kRQyl0iALOwUwABiGs',
         'client_secret': 'E1RontOUPioWb7I7SEAikll4hTgynNST4JGhFHryLMVuqV6NCrMCcIb0NX5FAkXNyistvdmIQ5rUJ6YuIutjwrMkY3wbb9b9sVQwtV7lIP2ffnBxuVoB4hoaoBYjK4bb',
         'redirect_uri': 'http://127.0.0.1:8000/test-callback/',
         'scopes': 'openid profile identity affiliations:clubs',
     },
-    'Library Card': {
+    'Student/Staff Card': { # Preferred name
         'client_id': '7WxE9NUvTweka9Qbe4cO5LFJO3uDf8Ef9uhPacQi',
         'client_secret': 'IekRMuRAulipw8CC40BAkfvDLmscDDKR8Z6I7c3kCP9TDPVWuqAqwMIBTJaYoM306pajN85CvDkGZilT0QX0HbW1SjoRiRtq4jmtqFuXQ1n2hxD2lG827gFosgLXlEmV',
         'redirect_uri': 'http://127.0.0.1:8000/test-callback/',
         'scopes': 'openid profile identity',
     },
-    'Transcript': {
+    'Transcript': { # Legal name
         'client_id': '4ykAdXmN1JByyERQP787rSM8Y31NyPeg5hgzmSfg',
         'client_secret': 'MoaEm22yCN2fNBhEfkLMwxZjDMLTic9f62uv26FPMsxhPKCknqahND5bZPeqaF03cyvYsILReSoxiG6L07vnKImgy3ykbFYKDvChMKQCeTxeoTNit0BwNGbUCdtPFMZv',
         'redirect_uri': 'http://127.0.0.1:8000/test-callback/',
         'scopes': 'openid identity affiliations:courses',
-    },
-    'Admin': {
-        'client_id': 'vzEaX0vjIbfIdAmu4uC3Wi5KARRUhpQk87vYfsZA',
-        'client_secret': 'dOATaETbbyhblRvhvRCdF4LKkK3jVoKaAUxVqeEMOKXRcMmrkyKtv2uNv9hskU5GCJEjQhfzVszx00LZqwKBRlVbQDiEqtEOnktGnCdiswDZa8QnBd7VJ2CCMN27NLvc',
-        'redirect_uri': 'http://127.0.0.1:8000/test-callback/',
-        'scopes': 'openid profile identity affiliations',
     },
 }
 
@@ -91,14 +85,6 @@ def test_application(app_name, app_config):
     headers = {'Authorization': f"Bearer {tokens['access_token']}"}
     userinfo = requests.get(f"{BASE_URL}/o/userinfo/", headers=headers).json()
 
-    # In your test script
-    response = requests.get(f"{BASE_URL}/o/userinfo/", headers=headers)
-    if response.status_code != 200:
-        print(f"Error {response.status_code}")
-        # Print just the beginning to find the 'KeyError' or 'AttributeError'
-        print(response.text[:500]) 
-        return
-    
     print(f"\nClaims Received:")
     print("-" * 70)
     print(json.dumps(userinfo, indent=2))

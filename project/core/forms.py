@@ -12,8 +12,16 @@ class DateInput(forms.DateInput):
 class StudentCreationForm(BaseUserCreationForm):
     # The institutional email address gets generated dynamically in Model
     # Get student name
-    forename = forms.CharField(max_length=200, required=True)
-    surname = forms.CharField(max_length=100, required=True)
+    forename = forms.CharField(
+        max_length=200, 
+        required=True,
+        label="Given Names / Forenames",
+        )
+    surname = forms.CharField(
+        max_length=100, 
+        required=True,
+        label="Family Name / Surname",
+        )
     preferred_name = forms.CharField(max_length=200, required=False)
     name_type = forms.ChoiceField(
         choices=(
