@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}University LMS{% endblock %}
+
+{% block content %}
+<h1>University Learning Management System</h1>
+<p>Welcome, {{ name }}!</p>
+<p>Student ID: {{ id }}</p>
+<h2>Your Courses:</h2>
+<ul>
+    {% for course in courses %}
+    <li>{{ course.affiliation_id }}</li>
+    <li>{{ course.role_name }}</li>
+    {% endfor %}
+</ul>
+
+<footer>
+    <div class="navbar">
+        <span>University System</span>
+        <form method="post" action="{% url 'core:logout' %}" id="logout-form">
+            {% csrf_token %}
+            <button type="submit" class="logout-btn">Sign Out</button>
+        </form>
+    </div>
+</footer>
+{% endblock %}

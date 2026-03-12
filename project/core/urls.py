@@ -17,7 +17,4 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('student/register/', views.StudentRegisterView.as_view(), name='register_student'),
     path('staff/register/', views.StaffRegisterView.as_view(), name='register_staff'),
-
-    # Authorisation endpoint
-    path('test-callback/', views.test_callback_view, name='test_callback_view'),
 ]

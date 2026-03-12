@@ -1,11 +1,11 @@
 from rest_framework import serializers
-from .models import Identity
+from core.models import Identity, RolesAndAffiliations
 
 
 class FullIdentitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Identity
-        fields = '__all__'
+        exclude = ['user']  # User pk should be a secret?
 
 
 class IdentityNameSerializer(serializers.ModelSerializer):
@@ -25,3 +25,10 @@ class IdentityNameSerializer(serializers.ModelSerializer):
             return f"{obj.legal_forenames} {obj.legal_surname}"
         # other contexts
         return obj.preferred_name
+    
+
+# idk yet
+class RolesAndAffiliationsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RolesAndAffiliations
+        fields = '__all__'

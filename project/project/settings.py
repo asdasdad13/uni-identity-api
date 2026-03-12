@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
+from datetime import timedelta
 
 # Secret environment variables during development
 from dotenv import load_dotenv
@@ -26,9 +27,29 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY')
+LMS_CLIENT_ID = os.environ.get('LMS_CLIENT_ID')
+LMS_CLIENT_SECRET = os.environ.get('LMS_CLIENT_SECRET')
+CLUB_DIRECTORY_CLIENT_ID = os.environ.get('CLUB_DIRECTORY_CLIENT_ID')
+CLUB_DIRECTORY_CLIENT_SECRET = os.environ.get('CLUB_DIRECTORY_CLIENT_SECRET')
+LIBRARY_CARD_CLIENT_ID = os.environ.get('LIBRARY_CARD_CLIENT_ID')
+LIBRARY_CARD_CLIENT_SECRET = os.environ.get('LIBRARY_CARD_CLIENT_SECRET')
+TRANSCRIPT_CLIENT_ID = os.environ.get('TRANSCRIPT_CLIENT_ID')
+TRANSCRIPT_CLIENT_SECRET = os.environ.get('TRANSCRIPT_CLIENT_SECRET')
+STAFF_DIRECTORY_CLIENT_ID = os.environ.get('STAFF_DIRECTORY_CLIENT_ID')
+STAFF_DIRECTORY_CLIENT_SECRET = os.environ.get('STAFF_DIRECTORY_CLIENT_SECRET')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+
+if DEBUG:
+    # Development
+    ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+    IDP_BASE_URL = 'http://127.0.0.1:8000'
+else:
+    # Production
+    ALLOWED_HOSTS = ['yourusername.pythonanywhere.com']
+    IDP_BASE_URL = 'https://yourusername.pythonanywhere.com'
+    
 
 ALLOWED_HOSTS = []
 
@@ -43,9 +64,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core',
     'api',
+    'lms',
     'rest_framework',
     'django_htmx',
     'oauth2_provider',
+    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
@@ -57,6 +80,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "django_htmx.middleware.HtmxMiddleware",
+    'oauth2_provider.middleware.OAuth2TokenMiddleware',
 ]
 
 REST_FRAMEWORK = {
@@ -163,6 +187,7 @@ LOGIN_REDIRECT_URL = 'core:dashboard'
 LOGOUT_REDIRECT_URL = 'core:index'
 
 AUTHENTICATION_BACKENDS = [
+    'oauth2_provider.backends.OAuth2Backend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 
@@ -170,3 +195,8 @@ AUTHENTICATION_BACKENDS = [
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+}

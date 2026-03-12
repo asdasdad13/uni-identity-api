@@ -15,8 +15,6 @@ class CustomOAuth2Validator(OAuth2Validator):
         # App requests for IDENTITY scope.
         # So the 'status' claim gets mapped to 'identity'.
         
-        'name': 'identity',
-
         'family_name': 'profile',
         'given_name': 'profile',
         'status': 'profile',
@@ -50,6 +48,10 @@ class CustomOAuth2Validator(OAuth2Validator):
             'sub': identity.institutional_id,   # Unique ID required by OIDC
             'name': identity.full_name,
         }
+
+        # Comply with standard OIDC scopes
+        claims['given_name'] = identity.legal_forenames
+        claims['family_name'] = identity.legal_surname
 
         # Add the claims that are requested in scopes
         scopes = getattr(request, 'scopes', None)

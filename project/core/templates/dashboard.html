@@ -53,6 +53,20 @@
             {% endfor %}
         </ul>
     </div>
+    <div>
+        <h3>
+            Other institutional services
+        </h3>
+        <div>
+            <ul>
+                <li><a href="{% url 'lms:index' %}">Learning Management System (LMS)</a></li>
+            </ul>
+            <form method="post" action="{% url 'lms:logout_and_revoke' %}" id="logout-form">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn">Sign out and disconnect LMS from your institution account</button>
+            </form>
+        </div>
+    </div>
 </div>
 
 <footer>
