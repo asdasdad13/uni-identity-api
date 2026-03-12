@@ -1,6 +1,14 @@
-from django.db import models, IntegrityError, transaction
-from django.conf import settings
+from django.db import models, transaction
 from django.contrib.auth.models import User
+import datetime
+
+class IdentitySequence(models.Model):
+    """Auxiliary table to help with generating unique sequence number for institutional_id."""
+    year = models.PositiveIntegerField(unique=True)
+    last_value = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.year}: {self.last_value}"
 
 
 class Identity(models.Model):
@@ -12,7 +20,7 @@ class Identity(models.Model):
         help_text = ("Automatically generated."),
         unique = True,
         editable = False,
-        default = None,
+        null=True,
     )
     legal_forenames = models.CharField(
         max_length = 200,
@@ -28,6 +36,7 @@ class Identity(models.Model):
 
     effective_date = models.DateField(  # Null for non-students.
         help_text = 'The date a person started as their current status.',
+        null=True,
     )
 
     status = models.CharField(
@@ -45,7 +54,7 @@ class Identity(models.Model):
         blank = False,
         default = None,
     )
-
+    
     @property
     def full_name(self):
         """Derived attribute from concatenating legal_forename and legal_surname."""
@@ -59,13 +68,7 @@ class Identity(models.Model):
             # More prefixes and weights can be added here in the future...
         }
 
-        CHECK_DIGITS = {
-            0: 'Y',     1: 'X',     2: 'W',
-            3: 'U',     4: 'R',     5: 'N',
-            6: 'M',     7: 'L',     8: 'J',
-            9: 'H',     10: 'E',    11: 'A',
-            12: 'B'
-        }
+        CHECK_DIGITS = "YXWURNMLJHEAB"
         
         # 1a. Remove the third digit.
         sliced_digits: str = digits[:2] + digits[3:]  # e.g. 123456 -> 12456
@@ -84,15 +87,20 @@ class Identity(models.Model):
     def save(self, **kwargs):
         if not self.institutional_id:   # Generate only on creation of record
             # Generate a string like 'STU2025000001A'.
-            year_prefix = str(self.effective_date.year)
-            
-            # Count how many identities already exist with this year's cohort.
-            count = Identity.objects.filter(institutional_id__contains=year_prefix).count()
-            sequence_number = count + 1
-            digits = f"{sequence_number:06d}"     # 000001, 012345, 123456, ...
+            year_prefix = str(datetime.datetime.now().year)
 
-            check_digit = str(self.calculate_check_digit("U", digits))
-            self.institutional_id = f"{self.status}{year_prefix}{digits}{check_digit}"
+            with transaction.atomic():  # Ensure atomicity
+                seq, _ = IdentitySequence.objects.select_for_update().get_or_create(
+                    year=year_prefix
+                )
+
+                # Increment counter
+                seq.last_value += 1
+                seq.save()
+                digits = f"{seq.last_value:06d}"     # 000001, 012345, 123456, ...
+
+                check_digit = str(self.calculate_check_digit("U", digits))
+                self.institutional_id = f"{self.status}{year_prefix}{digits}{check_digit}"
                         
         super().save(**kwargs)
     
@@ -106,7 +114,11 @@ class Identity(models.Model):
 class Profile(models.Model):
     """Non-critical information about a person's identity in the university."""
 
-    identity = models.OneToOneField(Identity, on_delete = models.CASCADE)
+    identity = models.OneToOneField(
+        Identity,
+        on_delete = models.CASCADE,
+        related_name = 'profile',
+    )
     preferred_name = models.CharField(
         max_length = 200,
         help_text = 'Given by the user.',
@@ -136,13 +148,17 @@ class RolesAndAffiliations(models.Model):
     """Link table modelling user's current roles and associations.
     Important to determine ABAC access decisions."""
 
-    identity = models.ForeignKey(Identity, on_delete = models.CASCADE)
+    identity = models.ForeignKey(
+        Identity,
+        on_delete = models.CASCADE,
+        related_name = 'affiliations',
+    )
     role_name = models.CharField(
-        max_length=100,
         choices={
             'UG': 'Undergraduate',
             'PG': 'Postgraduate',
             'CM': 'Club Member',
+            'CP': 'Club President',
             'PF': 'Professor',
             'AD': 'Admin',
         },
@@ -154,7 +170,8 @@ class RolesAndAffiliations(models.Model):
         choices={
             "CLUB": "Club",
             "COURSE": "Course",
-            "DEPARTMENT": "Department"
+            "MOD": "Module",
+            "DEPT": "Department"
         }
     )
     affiliation_id = models.CharField(
@@ -170,3 +187,9 @@ class RolesAndAffiliations(models.Model):
     
     def __str__(self):
         return self.role_name
+    
+class PendingAffiliation(RolesAndAffiliations):
+    class Meta:
+        proxy = True
+        verbose_name = "Pending Approval"
+        verbose_name_plural = "Pending Approvals"

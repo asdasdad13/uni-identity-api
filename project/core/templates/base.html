@@ -1,0 +1,20 @@
+{% load django_htmx %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}University Identity Portal{% endblock %}</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'styles.css' %}">
+    {% htmx_script %}
+</head>
+<body hx-headers='{"x-csrftoken": "{{ csrf_token }}"}'>
+    <div class="container">
+        <main>
+            {% block content %}
+            <!-- Content from child template -->
+            {% endblock %}
+        </main>
+    </div>
+</body>
+</html>

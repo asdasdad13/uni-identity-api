@@ -1,0 +1,161 @@
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+.container {
+  padding: 2.5rem;
+  border-radius: 8px;
+  max-width: 700px;
+  width: 100%;
+  min-height: 100vh;
+}
+.portal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.helptext {
+  color: grey;
+}
+.btn {
+  padding: 0.5rem;
+  text-decoration: none;
+  border-radius: 5px;
+  /* font-weight: bold; */
+  transition: transform 0.2s;
+  border: 2px solid transparent;
+}
+
+.errorlist, div.error-box p {
+  color: red;
+}
+
+.card {
+  background: white;
+  border: 1px solid #ddd;
+  padding: 1.5rem;
+  margin: 2rem auto;
+  max-width: 800px;
+  border-radius: 8px;
+}
+.badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  background: #eee;
+  color: #555;
+}
+.logout-btn {
+  background: none;
+  border: 1px solid white;
+  color: white;
+  padding: 5px 15px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+.navbar {
+  gap: 1rem;
+  background: #2980b9;
+  color: white;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#logout-form {
+  margin: 0;
+}
+
+table {
+    border-collapse: collapse;
+  margin: 25px 0;
+  font-size: 0.9em;
+  font-family: sans-serif;
+  min-width: 400px;
+  width: 100%;
+}
+
+table thead tr {
+  background-color: darkgray;
+  color: #ffffff;
+  text-align: left;
+}
+
+table th,
+table td {
+  padding: 12px 15px;
+}
+
+table tbody tr {
+  border-bottom: 1px solid lightgrey;
+  background-color: white;
+  transition: background-color 0.2s ease;
+}
+
+table tbody tr:nth-of-type(even) {
+  background-color: lightgrey;
+}
+
+table tbody tr:last-of-type {
+  border-bottom: 2px solid lightgrey;
+}
+
+table tbody tr:hover {
+  background-color: lightgrey;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+button[value="approve"] {
+  background-color: rgb(112, 204, 112);
+}
+
+button[value="reject"] {
+  background-color: rgb(228, 65, 65);
+}
+
+.loading-ring {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(0,0,0,0.1);
+  border-radius: 50%;
+  border-top-color: #007bff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+#submit {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.action-message {
+  opacity: 0.5;
+}
+
+div.form-group {
+  margin-bottom: 0.5rem;
+}

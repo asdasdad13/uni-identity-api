@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}My Enrolment{% endblock %}
+
+{% block content %}
+
+<h1>My Enrolment</h1>
+
+<div class="btn"><a href="{% url 'core:dashboard' %}">Return to dashboard</a></div>
+<table>
+    <thead>
+        <tr>
+            <th>Affiliation type</th>
+            <th>Affiliation ID</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for affiliation in affiliations %}
+            <tr>
+                <td>
+                    {{ affiliation.affiliation_type }}
+                </td>
+                <td>
+                    {{ affiliation.affiliation_id }}
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Staff Registration{% endblock %}
+
+{% block content %}
+
+<div class="btn"><a href="{% url 'core:register' %}">Return to home</a></div>
+{% if messages %}
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+<form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Register">
+</form>
+
+{% endblock %}
