@@ -10,6 +10,8 @@ from urllib.parse import urlencode
 from django.conf import settings
 from oauth2_provider.decorators import protected_resource
 from functools import wraps
+from api.utils import get_token
+
 
 IDP_BASE = settings.IDP_BASE_URL
 CLIENT_ID = settings.LMS_CLIENT_ID
@@ -19,8 +21,9 @@ REDIRECT_URI = f"{IDP_BASE}/lms/callback/"
 
 def oauth_required(view_func):
     """
-    Decorator to require OAuth authorization.
-    User must be logged into IdP AND have authorized this app via OAuth.
+    Decorator to require OAuth authorisation.
+    User must be logged into IdP AND have authorized decorated app via OAuth.
+    Redirects unauthorised users to login view.
     """
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
@@ -31,7 +34,7 @@ def oauth_required(view_func):
         
         # User is logged in, check if they've authorised via OAuth
         if 'user' not in request.session:
-            # Not authorized, start OAuth flow
+            # Not authorised, start OAuth flow
             return redirect('lms:login')
         
         # Proceed to view
@@ -43,16 +46,27 @@ def oauth_required(view_func):
 @oauth_required
 def index(request):
     """LMS homepage, requires OAuth authorisation (redirects to login if not yet authorised)."""
-    user = request.session['user']
-    courses = request.session.get('courses', [])
 
-    context = {
-        'name': user['name'],
-        'id': user['sub'],
-        'courses': courses,
-    }
+    # Get user data through calling internal API GET request.
+    token = get_token(request)
 
-    return render(request, 'lms/index.html', context)
+    # Call internal REST API to get data
+    api_response = requests.get(
+        # Get data about this user's identity
+        f"{IDP_BASE}/api/me/", headers={'Authorization': f"Bearer {token}"}
+    )
+    
+    if api_response.status_code == 200:
+        identity_data = api_response.json()
+        context = {
+            'name': identity_data['display_name'],
+            'id': identity_data['institutional_id'],
+            'courses': request.session.get('courses', []),
+        }
+        return render(request, 'lms/index.html', context)
+
+    print(f"API Error: {api_response.status_code}\n")
+    return HttpResponse("Failed to fetch identity data", status=api_response.status_code)
 
 
 def login(request):
@@ -88,7 +102,7 @@ def logout(request):
 
 def logout_and_revoke(request):
     """Logout and revoke app access"""
-    access_token = request.session['token']
+    access_token = request.session['access_token']
 
     params = {
         'token': access_token,
