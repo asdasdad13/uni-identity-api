@@ -5,7 +5,6 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.views import APIView
-from oauth2_provider.contrib.rest_framework import OAuth2Authentication, TokenHasScope
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .serializers import *
@@ -70,3 +69,13 @@ class IdentityMeAPIView(APIView):
         identity = request.user.identity
         serializer = IdentityMeSerializer(identity)
         return Response(serializer.data)
+    
+    def patch(self, request):
+        identity = request.user.identity
+        serializer = IdentityMeSerializer(identity)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        
+        return Response(serializer.errors)

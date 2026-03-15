@@ -6,7 +6,7 @@ from .factory import *
 import datetime
 
 
-# Models
+# Model tests
 
 class IdentityTestCase(TestCase):
     def setUp(self):
