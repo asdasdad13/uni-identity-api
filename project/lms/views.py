@@ -1,6 +1,5 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.views import redirect_to_login
-from oauth2_provider.views.generic import ProtectedResourceView
 from django.http import HttpResponse
 import requests
 import hashlib
@@ -8,7 +7,6 @@ import base64
 import secrets
 from urllib.parse import urlencode
 from django.conf import settings
-from oauth2_provider.decorators import protected_resource
 from functools import wraps
 from api.utils import get_token
 
@@ -59,7 +57,7 @@ def index(request):
     if api_response.status_code == 200:
         identity_data = api_response.json()
         context = {
-            'name': identity_data['display_name'],
+            'name': identity_data['full_name'], # TOOD: Preferred name
             'id': identity_data['institutional_id'],
             'courses': request.session.get('courses', []),
         }

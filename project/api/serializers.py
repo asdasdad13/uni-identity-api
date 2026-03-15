@@ -1,7 +1,6 @@
 from rest_framework import serializers
-from core.models import Identity, RolesAndAffiliations
+from core.models import Identity, RolesAndAffiliations, Profile
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from oauth2_provider.contrib.rest_framework import TokenHasScope
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -11,7 +10,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         if hasattr(user, 'identity'):
             token['institutional_id'] = user.identity.institutional_id
-            
             token['status'] = user.identity.status
             
             if hasattr(user.identity, 'profile') and user.identity.profile.preferred_name:
@@ -22,12 +20,19 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
     
 
+class ProfileSerializer(serializers.ModelSerializer):
+    model = Profile
+    fields = ['preferred_name', 'name_type']
+
+
 class IdentityMeSerializer(serializers.ModelSerializer):
+    profile = ProfileSerializer()
     display_name = serializers.SerializerMethodField()
     
     class Meta:
         model = Identity
-        fields = ['institutional_id', 'display_name', 'status']
+        fields = ['institutional_id', 'full_name', 'display_name', 'status', 'profile']
+        read_only_fields = ['institutional_id', 'full_name', 'display_name', 'status']
 
     def get_display_name(self, obj):
         """
@@ -40,6 +45,23 @@ class IdentityMeSerializer(serializers.ModelSerializer):
         
         # Fallback to the Identity model's full_name
         return obj.full_name
+
+    def update(self, instance, validated_data):
+        # Can update profile info
+        profile_data = validated_data.pop('profile', None)
+        instance.save()
+
+
+        if profile_data:
+            profile = instance.profile
+            instance.preferred_name = validated_data.get('preferred_name', profile.preferred_name)
+            instance.name_type = validated_data.get('name_type', profile.name_type)
+            # @property abbreviated_name doesn't need
+            # to be updated as it is dynamic.
+
+            profile.save()
+        
+        return instance
 
 
 class IdentitySerializer(serializers.ModelSerializer):
