@@ -78,7 +78,6 @@ class ProfileFactory(factory.django.DjangoModelFactory):
     identity = factory.SubFactory(IdentityFactory)
     # Optional columns
     preferred_name = "Joanna"
-    name_type = 'Preferred name'
 
     # Dynamically created abbreviated_name
 

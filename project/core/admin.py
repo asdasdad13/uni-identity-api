@@ -22,7 +22,6 @@ class IdentityAdmin(admin.ModelAdmin):
         'date_of_birth',
 
         'profile__preferred_name',
-        'profile__name_type',
 
         'display_affiliations',
     )

@@ -40,6 +40,7 @@ class Identity(models.Model):
     )
 
     status = models.CharField(
+        help_text='Status of university member.',
         max_length = 20,
         default = None,
         choices = {
@@ -50,6 +51,7 @@ class Identity(models.Model):
     )
 
     date_of_birth = models.DateField(
+        help_text="Date of birth.",
         null = True,
         blank = False,
         default = None,
@@ -122,13 +124,7 @@ class Profile(models.Model):
     preferred_name = models.CharField(
         max_length = 200,
         help_text = 'Given by the user.',
-        unique = False,
-    )
-    name_type = models.CharField(
-        help_text="For auditing. 'Preferred name', 'Nickname', 'Professional Alias', 'Maiden Name'",
-        max_length=100,
-        null=True,
-        blank=False,
+        blank=True
     )
 
     @property

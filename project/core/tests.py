@@ -55,14 +55,12 @@ class ProfileTestCase(TestCase):
 
         self.p1 = ProfileFactory.create(
             preferred_name = "Joanna",
-            name_type = 'Preferred name',
             identity = i1
         )
 
         # Profile that has no preferred name
         self.p2 = ProfileFactory.create(
             preferred_name = "",
-            name_type = ''
         )
 
     @tag("database")
@@ -97,15 +95,9 @@ class ProfileTestCase(TestCase):
         self.assertEqual(profile.preferred_name, self.p1.preferred_name)
 
     @tag("database")
-    def test_name_type(self):
-        profile = Profile.objects.get(pk=self.p1.pk)
-        self.assertEqual(profile.name_type, self.p1.name_type)
-
-    @tag("database")
     def test_no_preferred_name(self):
         profile = Profile.objects.get(pk=self.p2.pk)
         self.assertFalse(profile.preferred_name)
-        self.assertFalse(profile.name_type)
         self.assertTrue(profile.abbreviated_name)
         
     @tag("database")
