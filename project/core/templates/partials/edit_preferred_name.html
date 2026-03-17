@@ -1,0 +1,17 @@
+<form
+    hx-patch="{% url 'core:save_preferred_name' %}"
+    hx-target="#preferred-name"
+    hx-swap="outerHTML"
+    id="edit-name"
+>
+    <input type="text" name="preferred_name" value="{{ preferred_name }}" autofocus>
+    <button type="submit" aria-label="Submit new preferred name">Save</button>
+    <button
+        hx-get="{% url 'core:preferred_name' %}"
+        hx-target="#preferred-name"
+        hx-swap="outerHTML"
+        aria-label="Cancel edit name"
+    >
+        Cancel
+    </button>
+</form>

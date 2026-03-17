@@ -3,6 +3,8 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.admin.views.decorators import staff_member_required
+from django.http import HttpResponse, QueryDict
+from django.views.decorators.http import require_http_methods
 from django.views.generic.edit import CreateView
 from .forms import *
 from core.models import Identity, Profile, RolesAndAffiliations
@@ -11,7 +13,13 @@ import datetime
 import time
 import re
 from .utils import log_admin_action
+from api.utils import get_token
 from django.contrib.admin.models import CHANGE, DELETION
+import requests
+from django.conf import settings
+
+IDP_BASE = settings.IDP_BASE_URL
+
 
 # Authentication levels for views
 def is_staff(user):
@@ -49,7 +57,9 @@ def dashboard(request):
         affiliations = identity.affiliations.all()
 
         context = {
-            'name': profile.preferred_name if profile else identity.full_name,
+            'full_name': identity.full_name,
+            'preferred_name': getattr(profile, 'preferred_name', None),
+
             'role': identity.get_status_display(),
             'status_code': identity.status,
             'id': identity.institutional_id,
@@ -60,6 +70,9 @@ def dashboard(request):
         # e.g. admins
         context = {
             'name': request.user.username,
+            'full_name': None,
+            'preferred_name': None,
+
             'role': "Administrator",
             'status_code': "ADM",
             'id': "N/A",
@@ -118,7 +131,6 @@ class BaseRegisterView(CreateView):
             Profile.objects.create(
                 identity=identity,
                 preferred_name=preferred_name,
-                name_type=form.cleaned_data.get('name_type'),
             )
 
         response = super().form_valid(form)
@@ -172,7 +184,8 @@ class CreateAffiliationView(LoginRequiredMixin, UserPassesTestMixin, CreateView)
         return super().form_valid(form)
     
 
-def ajax_load_roles(request):
+@login_required
+def load_roles(request):
     """A fragment loaded by HTMX for adaptive dropdown in CreateAffiliationView.
     Triggers after an affiliation type has been selected by the user.
     """
@@ -185,9 +198,10 @@ def ajax_load_roles(request):
     return render(request, 'partials/role_dropdown_options.html', {'choices': choices})
 
 
-@user_passes_test(is_student)
-def enrolment(request):
-    """Student view of enrolment status and information."""
+
+@login_required
+def get_roles(request):
+    """View of enrolment status and information."""
     affiliations = (RolesAndAffiliations.objects
           .filter(identity__user=request.user)
           .values('affiliation_id', 'affiliation_type'))
@@ -195,7 +209,51 @@ def enrolment(request):
         'affiliations': affiliations
     }
 
-    return render(request, 'student/enrolment.html', context)
+    return render(request, 'get_roles.html', context)
+
+
+@login_required
+def preferred_name(request):
+    """HTMX partial to render read-only preferred name."""
+
+    context = {
+        'preferred_name': request.GET.get('preferred_name', None)
+    }
+
+    return render(request, 'partials/preferred_name.html', context)
+
+
+@login_required
+def edit_preferred_name(request):
+    """HTMX partial to render a form for user to change their preferred name."""
+
+    return render(request, 'partials/edit_preferred_name.html')
+
+
+@require_http_methods(["PATCH"])
+@login_required
+def save_preferred_name(request):
+    """HTMX partial that saves user's new preferred name from a PATCH request (edit_name)."""
+
+    # Get value from request body to send to API
+    data = QueryDict(request.body)
+    new_name = data.get('preferred_name')
+    token = get_token(request)
+
+    # Call internal REST API to get data
+    url = f"{IDP_BASE}/api/preferred-name/"
+    data = {'preferred_name': new_name}
+    headers = {'Authorization': f"Bearer {token}"}
+
+    api_response = requests.patch(url=url, json=data, headers=headers)
+
+    # Re-render user info board with new name
+    if api_response.status_code == 200:
+        context = {'preferred_name': new_name}
+
+        return render(request, 'partials/preferred_name.html', context)
+
+    return HttpResponse(api_response)
 
 
 # Admins can view and approve affiliation requests 

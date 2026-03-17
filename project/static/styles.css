@@ -26,9 +26,23 @@ body {
   padding: 0.5rem;
   text-decoration: none;
   border-radius: 5px;
-  /* font-weight: bold; */
+  font-weight: bold;
   transition: transform 0.2s;
-  border: 2px solid transparent;
+  border: 2px solid rgb(201, 201, 201);
+}
+
+.btn a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.btn a:hover {
+  color: rgb(189, 189, 189);
+  text-decoration: underline;
+}
+
+.btn a:visited {
+  color: inherit;
 }
 
 .btn-primary {
@@ -47,7 +61,7 @@ body {
 
 .card {
   background: white;
-  border: 1px solid #ddd;
+  border: 1px solid white;
   padding: 1.5rem;
   margin: 2rem auto;
   max-width: 800px;
@@ -58,7 +72,7 @@ body {
   border-radius: 20px;
   font-size: 0.8rem;
   background: #eee;
-  color: #555;
+  color: rgb(85, 85, 85);
 }
 .logout-btn {
   background: none;
@@ -73,12 +87,16 @@ body {
 }
 .navbar {
   gap: 1rem;
-  background: #2980b9;
+  background: rgb(59, 130, 246);
   color: white;
   padding: 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+ul#bottom-nav {
+  list-style-type: none;
 }
 
 #logout-form {
@@ -96,7 +114,7 @@ table {
 
 table thead tr {
   background-color: darkgray;
-  color: #ffffff;
+  color: rgb(255, 255, 255);
   text-align: left;
 }
 
@@ -146,7 +164,7 @@ button[value="reject"] {
   height: 24px;
   border: 3px solid rgba(0,0,0,0.1);
   border-radius: 50%;
-  border-top-color: #007bff;
+  border-top-color: rgb(59, 130, 246);
   animation: spin 1s ease-in-out infinite;
 }
 
@@ -168,4 +186,73 @@ button[value="reject"] {
 
 div.form-group {
   margin-bottom: 0.5rem;
+}
+
+
+/* Styles for preferred name form on dashboard. */
+dl {
+    display: grid;
+    grid-template-columns: 140px 1fr; /* Fixed width for labels, flexible for values */
+    background: rgb(253, 253, 253);
+    border: 1px solid rgb(238, 240, 242);
+    box-shadow: 2px 2px 2px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+}
+
+dt {
+    font-weight: bold;
+    color: rgb(50, 64, 83);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    display: flex;
+    align-items: center;
+    background-color: rgb(184, 184, 255);
+    padding: 0.5rem;
+}
+
+dt:nth-of-type(even) {
+    background-color: rgb(159, 159, 221);
+}
+
+dd {
+    margin: 0;
+    padding: 0.5rem;
+    color: rgb(30, 41, 59); 
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Keep 'Edit' button on the far right */
+    border-bottom: 1px transparent;
+    transition: background-color 0.2s;
+}
+
+/* Highlight the row being hovered */
+dd:hover {
+    background-color: rgb(224, 224, 224);
+    border-radius: 4px;
+}
+
+/* Edit Button */
+dd button {
+    padding: 4px 10px;
+    background: rgb(241, 245, 249);
+    border: 1px solid rgb(226, 232, 240);
+    border-radius: 4px;
+    cursor: pointer;
+    color: #475569;
+    transition: all 0.2s;
+}
+
+dd button:hover {
+    background: rgb(226, 232, 240);
+    color: rgb(15, 23, 42);
+}
+
+/* Edit input */
+#edit-name input {
+    padding: 4px 8px;
+    border: 2px solid rgb(59, 130, 246);
+    border-radius: 4px;
+    font-size: 1rem;
+    outline: none;
 }

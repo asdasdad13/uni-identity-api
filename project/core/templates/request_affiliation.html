@@ -14,27 +14,27 @@
     {% csrf_token %}
 
     <div class="form-group">
-        <label for="affiliation_type">Affiliation Type:</label>
-        <select name="affiliation_type"
-                hx-get="{% url 'core:ajax_load_roles' %}" 
-                hx-target="#role_name"
-                hx-swap="outerHTML"
-                hx-trigger="change">
-            <option value="">Select Type</option>
-            <option value="CLUB">Club</option>
-            <option value="COURSE">Course</option>
-            <option value="MOD">Module</option>
-            <option value="DEPT">Department</option>
+        <label for="{{ form.affiliation_type.id_for_label }}">Affiliation Type:</label>
+        <select name="affiliation_type" 
+            id="id_affiliation_type"
+            hx-get="{% url 'core:load_roles' %}" 
+            hx-target="#role-name"
+            hx-swap="outerHTML"
+            hx-trigger="change"
+        >
+            {% for value, text in form.affiliation_type.field.choices %}
+                <option value="{{ value }}">{{ text }}</option>
+            {% endfor %}
         </select>
     </div>
 
     <div class="form-group">
-        <label for="affiliation_id">Affiliation Name:</label>
-        <input type="text" name="affiliation_id">
+        <label for="{{ form.affiliation_id.id_for_label }}">{{ form.affiliation_id.label }}</label>
+        {{ form.affiliation_id }}
     </div>
 
-    <div class="form-group">
-        <label for="role_name">Role Name:</label>
+    <div id="role-name-group" class="form-group">
+        <label for="{{ form.role_name.id_for_label }}">{{ form.role_name.label }}</label>
         {% include 'partials/role_dropdown_options.html' with choices=form.role_name.field.choices %}
     </div>
 

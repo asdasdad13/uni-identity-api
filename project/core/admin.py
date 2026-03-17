@@ -82,3 +82,8 @@ class PendingAffiliationAdmin(admin.ModelAdmin):
             log_admin_action(request.user.id, [obj], DELETION, "Rejected and deleted affiliation.")
             obj.delete()
         self.message_user(request, f"Successfully rejected and removed {count} requests.")
+
+
+@admin.register(Profile)
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ('preferred_name',)

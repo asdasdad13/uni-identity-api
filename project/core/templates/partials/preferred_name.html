@@ -1,0 +1,10 @@
+<dd id="preferred-name">
+    <span>{{ preferred_name }}</span>
+    <button hx-get="{% url 'core:edit_preferred_name' %}" 
+        hx-target="#preferred-name > button" 
+        hx-swap="outerHTML"
+        aria-label="Edit preferred name"    
+    >
+        Edit
+    </button>
+</dd>

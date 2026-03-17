@@ -51,14 +51,14 @@ def index(request):
     # Call internal REST API to get data
     api_response = requests.get(
         # Get data about this user's identity
-        f"{IDP_BASE}/api/me/", headers={'Authorization': f"Bearer {token}"}
+        f"{IDP_BASE}/api/display-name/", headers={'Authorization': f"Bearer {token}", 'context': 'lms'}
     )
     
     if api_response.status_code == 200:
         identity_data = api_response.json()
         context = {
-            'name': identity_data['full_name'], # TOOD: Preferred name
-            'id': identity_data['institutional_id'],
+            'name': identity_data['display_name'],
+            'id': request.session['user'].get('sub'),
             'courses': request.session.get('courses', []),
         }
         return render(request, 'lms/index.html', context)

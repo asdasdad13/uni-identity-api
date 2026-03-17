@@ -21,19 +21,20 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     
 
 class ProfileSerializer(serializers.ModelSerializer):
-    model = Profile
-    fields = ['preferred_name', 'abbreviated_name']
+    class Meta:
+        model = Profile
+        fields = ['preferred_name', 'abbreviated_name']
 
 
 class DisplayNameSerializer(serializers.ModelSerializer):
     # custom field that will change based on context
-    name = serializers.SerializerMethodField()
+    display_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Identity
-        fields = ['name']
+        fields = ['display_name']
 
-    def get_name(self, obj):
+    def get_display_name(self, obj):
         # access the context passed from the view
         request_context = self.context.get('request_context')
 
@@ -52,34 +53,10 @@ class DisplayNameSerializer(serializers.ModelSerializer):
 
 
 class IdentityMeSerializer(serializers.ModelSerializer):
-    display_name = serializers.SerializerMethodField()
-    
     class Meta:
         model = Identity
-        fields = ['institutional_id', 'display_name', 'status']
-        read_only_fields = ['institutional_id', 'display_name', 'status']
-
-    def get_display_name(self, obj):
-        serializer = DisplayNameSerializer(obj, context=self.context)
-
-        # Return only the 'name' string, not the whole dict.
-        return serializer.data.get('name')
-
-    def update(self, instance, validated_data):
-        # Can update profile info
-        profile_data = validated_data.pop('profile', None)
-        instance.save()
-
-
-        if profile_data:
-            profile = instance.profile
-            instance.preferred_name = validated_data.get('preferred_name', profile.preferred_name)
-            # @property abbreviated_name doesn't need
-            # to be updated as it is dynamic.
-
-            profile.save()
-        
-        return instance
+        fields = ['institutional_id', 'full_name', 'status']
+        read_only_fields = ['institutional_id', 'full_name', 'status']
 
 
 class IdentitySerializer(serializers.ModelSerializer):
@@ -92,3 +69,9 @@ class RolesAndAffiliationsSerializer(serializers.ModelSerializer):
     class Meta:
         model = RolesAndAffiliations
         fields = '__all__'
+
+
+class PreferredNameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ['preferred_name']

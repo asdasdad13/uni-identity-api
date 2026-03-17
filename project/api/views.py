@@ -57,10 +57,8 @@ def full_identity(request, user_id):
 
 
 class IdentityMeAPIView(APIView):
-    """
-    REST API endpoint for the current user to read their identity.
-    Protected by OAuth2 scopes.
-    """
+    """User's own identity."""
+
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     required_scopes = ['profile']
@@ -72,10 +70,39 @@ class IdentityMeAPIView(APIView):
     
     def patch(self, request):
         identity = request.user.identity
-        serializer = IdentityMeSerializer(identity)
+        serializer = IdentityMeSerializer(identity, data=request.data, partial=True)
 
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         
         return Response(serializer.errors)
+    
+
+class PreferredNameAPIView(APIView):
+    """A user's preferred name."""
+    
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    required_scopes = ['profile']
+    
+    def patch(self, request):
+        profile, created = Profile.objects.get_or_create(identity=request.user.identity)
+        serializer = PreferredNameSerializer(profile, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        
+        return Response(serializer.errors)
+    
+
+class DisplayNameAPIView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    required_scopes = ['profile']
+
+    def get(self, request):
+        identity = request.user.identity
+        serializer = DisplayNameSerializer(identity)
+        return Response(serializer.data)

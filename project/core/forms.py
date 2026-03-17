@@ -35,20 +35,12 @@ class AffiliationRequestForm(forms.ModelForm):
         # Overwrite default ModelForm to have
         # adaptive role_name field depending on selected affiliation_type.
 
-        # Check POST/GET data for AJAX call
+        # Check POST/GET data from HTMX call
         # Or use value from unbound form
         aff_type = self.data.get('affiliation_type') or self.initial.get('affiliation_type')
 
-        self.fields['role_name'].choices = self.get_role_choices(aff_type)
+        self.fields['role_name'].choices = RolesAndAffiliations.ROLE_MAP.get(aff_type, [])
 
     @staticmethod
     def get_role_choices(aff_type):
-        match aff_type:
-            case 'CLUB':
-                return [('CM', 'Club Member'), ('PR', 'President')]
-            case 'COURSE' | 'MOD':
-                return [('UG', 'Undergraduate'), ('PG', 'Postgraduate')]
-            case 'DEPT':
-                return [('PF', 'Professor'), ('AD', 'Admin')]
-            case _:
-                return [('', '---Select Type First---')]
+        return RolesAndAffiliations.ROLE_MAP.get(aff_type, [])

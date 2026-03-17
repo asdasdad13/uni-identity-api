@@ -149,7 +149,16 @@ class RolesAndAffiliations(models.Model):
         on_delete = models.CASCADE,
         related_name = 'affiliations',
     )
+
+    ROLE_MAP = {
+        'CLUB': [('CM', 'Club Member'), ('CP', 'President')],
+        'COURSE': [('UG', 'Undergraduate'), ('PG', 'Postgraduate')],
+        'MOD': [('UG', 'Undergraduate'), ('PG', 'Postgraduate')],
+        'DEPT': [('PF', 'Professor'), ('AD', 'Admin')],
+    }
+
     role_name = models.CharField(
+        max_length=2,
         choices={
             'UG': 'Undergraduate',
             'PG': 'Postgraduate',
@@ -160,15 +169,18 @@ class RolesAndAffiliations(models.Model):
         },
         help_text="The current institutional role.",
     )
+
+    AFFILIATION_TYPE_CHOICES = {
+        "CLUB": "Club",
+        "COURSE": "Course",
+        "MOD": "Module",
+        "DEPT": "Department"
+    }
+
     affiliation_type = models.CharField(
         max_length=100,
         help_text="Specific association.",
-        choices={
-            "CLUB": "Club",
-            "COURSE": "Course",
-            "MOD": "Module",
-            "DEPT": "Department"
-        }
+        choices=AFFILIATION_TYPE_CHOICES,
     )
     affiliation_id = models.CharField(
         # E.g. 'CS_UG_2024', 'Chess_Club'

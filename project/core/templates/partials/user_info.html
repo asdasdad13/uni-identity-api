@@ -1,0 +1,16 @@
+<div>
+    <h2>Your information</h2>
+    <dl>
+        <dt>ID</dt>
+        <dd>{{ id }}</dd>
+        
+        <dt>Full name</dt>
+        <dd>{{ full_name }}</dd>
+                
+        <dt>Preferred name</dt>
+        {% include 'partials/preferred_name.html' %}
+        
+        <dt>Role</dt>
+        <dd>{{ role }}</dd>
+    </dl>
+</div>

@@ -1,17 +1,10 @@
-{% load static %}
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff Portal</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'styles.css' %}">
-</head>
-<body>
-    <div class="container">
-        <h1>Register a new account</h1>
-    </div>
-    <p>I am a...</p>
-    <div class="portal-grid">
-        <a href="{% url 'core:register_student' %}" class="btn btn-student">Student</a>
-        <a href="{% url 'core:register_staff' %}" class="btn btn-staff">Staff Member</a>
-    </div>
-</body>
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<h1>Register a new account</h1>
+<p>I am a...</p>
+<div class="portal-grid">
+    <a href="{% url 'core:register_student' %}" class="btn btn-primary">Student</a>
+    <a href="{% url 'core:register_staff' %}" class="btn btn-secondary">Staff Member</a>
+</div>
+{% endblock %}
