@@ -1,7 +1,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from unittest.mock import patch
-from core.factory import IdentityFactory, ProfileFactory, RolesAndAffiliationsFactory
+from core.factory import IdentityFactory, ProfileFactory, AffiliationsFactory
 
 
 class LmsViewTests(TestCase):
@@ -10,7 +10,7 @@ class LmsViewTests(TestCase):
         self.i1 = IdentityFactory.create()
         self.u1 = self.i1.user
         self.p1 = ProfileFactory.create(identity=self.i1)
-        self.r1 = RolesAndAffiliationsFactory.create(identity=self.i1)
+        self.r1 = AffiliationsFactory.create(identity=self.i1)
 
     def force_authenticate_session(self, courses=None):
         """Helper to bypass @oauth_required and prime the session."""

@@ -4,14 +4,14 @@ from .utils import log_admin_action
 from django.contrib.admin.models import CHANGE, DELETION
 from django.utils.html import format_html, mark_safe
 
-class RolesAndAffiliationsInline(admin.TabularInline):
-    model = RolesAndAffiliations
+class AffiliationsInline(admin.TabularInline):
+    model = Affiliations
     fields = ('affiliation_id', 'affiliation_type', 'role_name', 'is_active')
 
 
 @admin.register(Identity)
 class IdentityAdmin(admin.ModelAdmin):
-    inlines = [RolesAndAffiliationsInline]
+    inlines = [AffiliationsInline]
     list_display = (
         'id',
         'user__username',

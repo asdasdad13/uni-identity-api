@@ -65,10 +65,10 @@ class IdentityFactory(factory.django.DjangoModelFactory):
         if extracted:
             # A number was passed in as argument while creating
             for _ in range(extracted):
-                RolesAndAffiliationsFactory(identity=obj)
+                AffiliationsFactory(identity=obj)
 
         else:   # Default behaviour: always create at least one role
-            RolesAndAffiliationsFactory(identity=obj)
+            AffiliationsFactory(identity=obj)
 
 
 class ProfileFactory(factory.django.DjangoModelFactory):
@@ -81,9 +81,9 @@ class ProfileFactory(factory.django.DjangoModelFactory):
 
     # Dynamically created abbreviated_name
 
-class RolesAndAffiliationsFactory(factory.django.DjangoModelFactory):
+class AffiliationsFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = RolesAndAffiliations
+        model = Affiliations
 
     identity = factory.SubFactory(IdentityFactory)
     role_name = 'UG'
@@ -111,7 +111,7 @@ class CompleteIdentityFactory(IdentityFactory):
         if extracted:
             # A number was passed in as argument while creating
             for _ in range(extracted):
-                RolesAndAffiliationsFactory(identity=obj)
+                AffiliationsFactory(identity=obj)
 
         else:   # Default behaviour: always create at least one role
-            RolesAndAffiliationsFactory(identity=obj)
+            AffiliationsFactory(identity=obj)

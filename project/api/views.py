@@ -1,5 +1,5 @@
 from rest_framework.decorators import api_view, permission_classes
-from core.models import Identity, RolesAndAffiliations
+from core.models import Identity, Affiliations
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
@@ -23,7 +23,7 @@ def get_affiliations(request, student_id):
     """
     context = request.GET.get('context')
     
-    affiliations = RolesAndAffiliations.objects.filter(
+    affiliations = Affiliations.objects.filter(
         identity__institutional_id=student_id,
         is_active=True
     )
@@ -39,7 +39,7 @@ def get_affiliations(request, student_id):
     return Response({
         'student_id': student_id,
         'context': context,
-        'affiliations': RolesAndAffiliationsSerializer(affiliations, many=True).data
+        'affiliations': AffiliationsSerializer(affiliations, many=True).data
     })
 
 

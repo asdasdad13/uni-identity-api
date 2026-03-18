@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import BaseUserCreationForm
 from django.contrib.auth.models import User
-from .models import RolesAndAffiliations, Profile
+from .models import Affiliations
 
 
 class DateInput(forms.DateInput):
@@ -14,11 +14,18 @@ class StudentCreationForm(BaseUserCreationForm):
     legal_forenames = forms.CharField(max_length=200, label="Given Names / Forenames")
     legal_surname = forms.CharField(max_length=100, label="Family Name / Surname")
     date_of_birth = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
+    preferred_name = forms.CharField(
+        max_length=200, 
+        required=False, 
+        label="Preferred Name (Optional)",
+        help_text="How you would like to be addressed in email correspondance and casual settings."
+    )
 
     class Meta:
         model = User
         fields = []
     
+
 class StaffCreationForm(StudentCreationForm):
     class Meta(StudentCreationForm.Meta):   # Inherit same properties
         pass
@@ -26,7 +33,7 @@ class StaffCreationForm(StudentCreationForm):
 
 class AffiliationRequestForm(forms.ModelForm):
     class Meta:
-        model = RolesAndAffiliations
+        model = Affiliations
         fields = ['affiliation_type', 'role_name', 'affiliation_id']
 
     def __init__(self, *args, **kwargs):
@@ -39,8 +46,8 @@ class AffiliationRequestForm(forms.ModelForm):
         # Or use value from unbound form
         aff_type = self.data.get('affiliation_type') or self.initial.get('affiliation_type')
 
-        self.fields['role_name'].choices = RolesAndAffiliations.ROLE_MAP.get(aff_type, [])
+        self.fields['role_name'].choices = Affiliations.ROLE_MAP.get(aff_type, [])
 
     @staticmethod
     def get_role_choices(aff_type):
-        return RolesAndAffiliations.ROLE_MAP.get(aff_type, [])
+        return Affiliations.ROLE_MAP.get(aff_type, [])

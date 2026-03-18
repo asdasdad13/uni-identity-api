@@ -7,7 +7,7 @@ from django.http import HttpResponse, QueryDict
 from django.views.decorators.http import require_http_methods
 from django.views.generic.edit import CreateView
 from .forms import *
-from core.models import Identity, Profile, RolesAndAffiliations
+from core.models import Identity, Profile, Affiliations
 from django.urls import reverse_lazy
 import datetime
 import time
@@ -48,6 +48,7 @@ def register(request):
 @login_required
 def dashboard(request):
     try:
+        # TODO: Replace with API endpoints api/me/
         identity = (Identity.objects
                     .select_related('profile')
                     .prefetch_related('affiliations')
@@ -57,6 +58,7 @@ def dashboard(request):
         affiliations = identity.affiliations.all()
 
         context = {
+            'email': request.user.username,
             'full_name': identity.full_name,
             'preferred_name': getattr(profile, 'preferred_name', None),
 
@@ -106,10 +108,10 @@ class BaseRegisterView(CreateView):
 
     def form_valid(self, form):
         user = form.save(commit=False)  # Create object in memory
-        forename = form.cleaned_data.get('forename')
-        surname = form.cleaned_data.get('surname')
+        legal_forenames = form.cleaned_data.get('legal_forenames')
+        legal_surname = form.cleaned_data.get('legal_surname')
         
-        generated_email = generate_email(forename, surname, self.email_domain)
+        generated_email = generate_email(legal_forenames, legal_surname, self.email_domain)
         # Attach new email to the db object to User
         user.username = generated_email
         user.save()
@@ -117,8 +119,8 @@ class BaseRegisterView(CreateView):
         # Create new Identity for this person
         identity = Identity.objects.create(
             user=user,
-            legal_forenames=forename,
-            legal_surname=surname,
+            legal_forenames=legal_forenames,
+            legal_surname=legal_surname,
             status=self.registration_status,  # Set dynamically by subclass
             date_of_birth=form.cleaned_data.get('date_of_birth'),
             effective_date=datetime.datetime.now(),
@@ -135,7 +137,7 @@ class BaseRegisterView(CreateView):
 
         response = super().form_valid(form)
         # Log the user in immediately after registration
-        login(self.request, self.object)
+        login(self.request, user, backend='django.contrib.auth.backends.ModelBackend')
         return response
 
 
@@ -161,7 +163,7 @@ class CreateAffiliationView(LoginRequiredMixin, UserPassesTestMixin, CreateView)
     """
 
     # Handles GET
-    model = RolesAndAffiliations
+    model = Affiliations
     form_class = AffiliationRequestForm
     template_name = 'request_affiliation.html'
 
@@ -202,7 +204,7 @@ def load_roles(request):
 @login_required
 def get_roles(request):
     """View of enrolment status and information."""
-    affiliations = (RolesAndAffiliations.objects
+    affiliations = (Affiliations.objects
           .filter(identity__user=request.user)
           .values('affiliation_id', 'affiliation_type'))
     context = {
@@ -260,7 +262,7 @@ def save_preferred_name(request):
 @staff_member_required
 def affiliation_approvals(request):
     """Lists all pending (inactive) role/affiliation requests."""
-    pending_requests = RolesAndAffiliations.objects.filter(is_active=False)
+    pending_requests = Affiliations.objects.filter(is_active=False)
 
     return render(request, 'admin/affiliation_approval.html', {
         'requests': pending_requests
@@ -271,7 +273,7 @@ def affiliation_approvals(request):
 def approve_affiliation(request, affiliation_id):
     """Action to set a specific affiliation to active."""
     if request.htmx:
-        affiliation = get_object_or_404(RolesAndAffiliations, id=affiliation_id)
+        affiliation = get_object_or_404(Affiliations, id=affiliation_id)
 
         match request.POST.get("action"):
             case "approve":

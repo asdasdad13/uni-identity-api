@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from core.models import Identity, RolesAndAffiliations, Profile
+from core.models import Identity, Affiliations, Profile
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
@@ -51,24 +51,38 @@ class DisplayNameSerializer(serializers.ModelSerializer):
             case _:
                 return obj.full_name
 
-
-class IdentityMeSerializer(serializers.ModelSerializer):
+    
+class AffiliationsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Identity
-        fields = ['institutional_id', 'full_name', 'status']
-        read_only_fields = ['institutional_id', 'full_name', 'status']
+        model = Affiliations
+        fields = '__all__'
 
 
 class IdentitySerializer(serializers.ModelSerializer):
+    display_name = serializers.SerializerMethodField()
+    email = serializers.EmailField(source='user.username', read_only=True)
+    affiliations = AffiliationsSerializer(many=True, read_only=True)
+    profile = ProfileSerializer(read_only=True)
+
+    class Meta:
+        model = Identity
+        read_only_fields = [
+            'institutional_id', 
+            'display_name', 
+            'full_name', 
+            'status', 
+            'email', 
+            'profile', 
+            'affiliations'
+        ]
+
     class Meta:
         model = Identity
         exclude = ['user']  # User pk should be a secret
-    
 
-class RolesAndAffiliationsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RolesAndAffiliations
-        fields = '__all__'
+    def get_display_name(self, obj):
+        serializer = DisplayNameSerializer(obj, context=self.context)
+        return serializer.data.get('display_name')
 
 
 class PreferredNameSerializer(serializers.ModelSerializer):

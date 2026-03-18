@@ -122,15 +122,15 @@ class ProfileTestCase(TestCase):
         self.assertFalse(Identity.objects.filter(pk=pk2).exists())
         self.assertFalse(Profile.objects.filter(pk=pk2).exists())
 
-class RolesAndAffiliationsTestCase(TestCase):
+class AffiliationsTestCase(TestCase):
     def setUp(self):
         self.i1 = CompleteIdentityFactory.create()
         self.i2 = CompleteIdentityFactory.create(create_roles=2)
         
     @tag("database")
     def test_roles_exist(self):
-        i1_roles = RolesAndAffiliations.objects.filter(identity=self.i1).count()
-        i2_roles = RolesAndAffiliations.objects.filter(identity=self.i2).count()
+        i1_roles = Affiliations.objects.filter(identity=self.i1).count()
+        i2_roles = Affiliations.objects.filter(identity=self.i2).count()
 
         # Number of roles
         self.assertEqual(i1_roles, 1)
@@ -138,7 +138,7 @@ class RolesAndAffiliationsTestCase(TestCase):
     
     @tag("database")
     def test_add_roles(self):
-        RolesAndAffiliationsFactory.create(
+        AffiliationsFactory.create(
             identity=self.i1,
             role_name='CM',
             affiliation_type='CLUB',
@@ -146,29 +146,29 @@ class RolesAndAffiliationsTestCase(TestCase):
             is_active = True
         )
 
-        i1_roles = RolesAndAffiliations.objects.filter(identity=self.i1).count()
+        i1_roles = Affiliations.objects.filter(identity=self.i1).count()
         self.assertEqual(i1_roles, 2)
 
     @tag("database")
     def test_delete_roles(self):
         # Before deletion, i1 should have 1 role
-        i1_roles = RolesAndAffiliations.objects.filter(identity=self.i1).count()
+        i1_roles = Affiliations.objects.filter(identity=self.i1).count()
         self.assertEqual(i1_roles, 1)
 
         # Delete the 1 record of a role
-        RolesAndAffiliations.objects.get(identity=self.i1).delete()
-        i1_roles_2 = RolesAndAffiliations.objects.filter(identity=self.i1).count()
+        Affiliations.objects.get(identity=self.i1).delete()
+        i1_roles_2 = Affiliations.objects.filter(identity=self.i1).count()
         self.assertEqual(i1_roles_2, 0)
 
     @tag("database")
     def test_is_active(self):
-        r1 = RolesAndAffiliations.objects.get(identity=self.i1)
+        r1 = Affiliations.objects.get(identity=self.i1)
         self.assertTrue(r1.is_active)
 
         # Set a role to inactive
         r1.is_active = False
         r1.save()
 
-        self.assertFalse(RolesAndAffiliations.objects.get(identity=self.i1).is_active)
-        self.assertEqual(RolesAndAffiliations.objects.filter(is_active=False).count(), 1)
-        self.assertEqual(RolesAndAffiliations.objects.filter(is_active=True).count(), 2)
+        self.assertFalse(Affiliations.objects.get(identity=self.i1).is_active)
+        self.assertEqual(Affiliations.objects.filter(is_active=False).count(), 1)
+        self.assertEqual(Affiliations.objects.filter(is_active=True).count(), 2)

@@ -140,7 +140,7 @@ class Profile(models.Model):
         return self.preferred_name
     
 
-class RolesAndAffiliations(models.Model):
+class Affiliations(models.Model):
     """Link table modelling user's current roles and associations.
     Important to determine ABAC access decisions."""
 
@@ -196,7 +196,7 @@ class RolesAndAffiliations(models.Model):
     def __str__(self):
         return self.role_name
     
-class PendingAffiliation(RolesAndAffiliations):
+class PendingAffiliation(Affiliations):
     class Meta:
         proxy = True
         verbose_name = "Pending Approval"

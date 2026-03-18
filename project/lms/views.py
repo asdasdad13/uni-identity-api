@@ -58,7 +58,6 @@ def index(request):
         identity_data = api_response.json()
         context = {
             'name': identity_data['display_name'],
-            'id': request.session['user'].get('sub'),
             'courses': request.session.get('courses', []),
         }
         return render(request, 'lms/index.html', context)
