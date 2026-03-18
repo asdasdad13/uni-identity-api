@@ -1,0 +1,15 @@
+<div id="role-name" hx-swap-oob="true">
+    <select name="role_name" id="id_role_name">
+        {% for val, label in choices %}
+            <option value="{{ val }}">{{ label }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div id="affiliation-list" hx-swap-oob="true">
+    <select name="affiliation" id="id_affiliation">
+        {% for entity in entities %}
+            <option value="{{ entity.id }}">{{ entity.name }} ({{ entity.uid }})</option>
+        {% endfor %}
+    </select>
+</div>

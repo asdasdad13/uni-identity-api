@@ -1,7 +1,6 @@
 """factory_boy for testing models."""
 import factory
 import factory.random
-from django.utils.dateparse import parse_date
 from django.contrib.auth.models import User
 
 from .models import *
@@ -65,10 +64,10 @@ class IdentityFactory(factory.django.DjangoModelFactory):
         if extracted:
             # A number was passed in as argument while creating
             for _ in range(extracted):
-                AffiliationsFactory(identity=obj)
+                IdentityAffiliationFactory(identity=obj)
 
         else:   # Default behaviour: always create at least one role
-            AffiliationsFactory(identity=obj)
+            IdentityAffiliationFactory(identity=obj)
 
 
 class ProfileFactory(factory.django.DjangoModelFactory):
@@ -81,15 +80,29 @@ class ProfileFactory(factory.django.DjangoModelFactory):
 
     # Dynamically created abbreviated_name
 
-class AffiliationsFactory(factory.django.DjangoModelFactory):
+
+class AffiliationFactory(factory.django.DjangoModelFactory):
+    """Creates the 'Source of Truth' entities (Courses, Clubs, etc.)"""
+
     class Meta:
-        model = Affiliations
+        model = Affiliation
+        django_get_or_create = ('uid',) # Prevent duplicate UID errors in tests
+
+    uid = factory.Sequence(lambda n: f"COURSE_{n}")
+    name = factory.Sequence(lambda n: f"Generic Course {n}")
+    affiliation_type = 'COURSE'
+
+
+class IdentityAffiliationFactory(factory.django.DjangoModelFactory):
+    """Creates the link between a user and their affiliation."""
+
+    class Meta:
+        model = IdentityAffiliation
 
     identity = factory.SubFactory(IdentityFactory)
+    affiliation = factory.SubFactory(AffiliationFactory)
     role_name = 'UG'
-    affiliation_type = 'COURSE'
-    affiliation_id = 'CS_UG_2024'
-    is_active = True
+    is_active=True
 
 
 class CompleteIdentityFactory(IdentityFactory):
@@ -111,7 +124,7 @@ class CompleteIdentityFactory(IdentityFactory):
         if extracted:
             # A number was passed in as argument while creating
             for _ in range(extracted):
-                AffiliationsFactory(identity=obj)
+                IdentityAffiliationFactory(identity=obj)
 
         else:   # Default behaviour: always create at least one role
-            AffiliationsFactory(identity=obj)
+            IdentityAffiliationFactory(identity=obj)

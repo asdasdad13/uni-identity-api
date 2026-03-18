@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from core.models import Identity, Affiliations, Profile
+from core.models import Identity, IdentityAffiliation, Profile
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
@@ -52,37 +52,53 @@ class DisplayNameSerializer(serializers.ModelSerializer):
                 return obj.full_name
 
     
-class AffiliationsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Affiliations
-        fields = '__all__'
+class AffiliationSerializer(serializers.ModelSerializer):
+    affiliation_name = serializers.CharField(source='affiliation.name', read_only=True)
+    affiliation_id = serializers.CharField(source='affiliation.uid', read_only=True)
+    affiliation_type = serializers.CharField(source='affiliation.affiliation_type', read_only=True)
+    role_name = serializers.CharField(source='get_role_name_display', read_only=True)
 
+    class Meta:
+        model = IdentityAffiliation
+        fields = ('affiliation_type', 'affiliation_id', 'affiliation_name', 'role_name', 'is_active')
 
 class IdentitySerializer(serializers.ModelSerializer):
-    display_name = serializers.SerializerMethodField()
     email = serializers.EmailField(source='user.username', read_only=True)
-    affiliations = AffiliationsSerializer(many=True, read_only=True)
+    affiliations = serializers.SerializerMethodField()
     profile = ProfileSerializer(read_only=True)
+    display_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Identity
-        read_only_fields = [
-            'institutional_id', 
-            'display_name', 
-            'full_name', 
-            'status', 
-            'email', 
-            'profile', 
-            'affiliations'
+        fields = [
+            'institutional_id', 'full_name', 'date_of_birth', 'display_name', 'legal_forenames', 
+            'legal_surname', 'status', 'effective_date', 'email', 'profile', 'affiliations'
         ]
 
-    class Meta:
-        model = Identity
-        exclude = ['user']  # User pk should be a secret
+    def get_affiliations(self, obj):
+        """Returns only the active affiliations for this identity."""
+        active_affs = obj.affiliations.filter(is_active=True)
+        return AffiliationSerializer(active_affs, many=True).data
 
     def get_display_name(self, obj):
+        """Return suitable display name for user."""
         serializer = DisplayNameSerializer(obj, context=self.context)
         return serializer.data.get('display_name')
+    
+    def to_representation(self, instance):
+        # Get the standard representation
+        data = super().to_representation(instance)
+        
+        # Check the context set in the view
+        is_owner = self.context.get('is_owner', False)
+
+        # If they aren't the owner, strip away the private stuff
+        if not is_owner:
+            private_fields = ['email', 'profile', 'affiliations', 'institutional_id']
+            for field in private_fields:
+                data.pop(field, None)
+        
+        return data
 
 
 class PreferredNameSerializer(serializers.ModelSerializer):

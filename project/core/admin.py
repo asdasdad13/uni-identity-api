@@ -4,14 +4,23 @@ from .utils import log_admin_action
 from django.contrib.admin.models import CHANGE, DELETION
 from django.utils.html import format_html, mark_safe
 
-class AffiliationsInline(admin.TabularInline):
-    model = Affiliations
-    fields = ('affiliation_id', 'affiliation_type', 'role_name', 'is_active')
+
+class IdentityAffiliationInline(admin.TabularInline):
+    model = IdentityAffiliation
+    # Note: 'affiliation' is now a ForeignKey, so it shows a dropdown of Affiliation objects
+    fields = ('affiliation', 'role_name', 'is_active')
+    extra = 0
+
+@admin.register(Affiliation)
+class AffiliationAdmin(admin.ModelAdmin):
+    list_display = ('name', 'uid', 'affiliation_type')
+    list_filter = ('affiliation_type',)
+    search_fields = ('name', 'uid')
 
 
 @admin.register(Identity)
 class IdentityAdmin(admin.ModelAdmin):
-    inlines = [AffiliationsInline]
+    inlines = [IdentityAffiliationInline]
     list_display = (
         'id',
         'user__username',
@@ -27,8 +36,8 @@ class IdentityAdmin(admin.ModelAdmin):
     )
 
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('affiliations')
-    
+        return super().get_queryset(request).prefetch_related('affiliations__affiliation')
+        
     # Display roles and affiliations as a nicely formatted string in the admin list view
     @admin.display(description='Roles')
     def display_affiliations(self, obj):
@@ -39,7 +48,7 @@ class IdentityAdmin(admin.ModelAdmin):
         
         # Use format_html to include <br>
         html_items = [format_html('<strong>{}</strong>: {} ({})',
-                                    aff.affiliation_type,
+                                    aff.affiliation.affiliation_type,
                                     aff.affiliation_id,
                                     aff.role_name,
                                   )
@@ -51,8 +60,7 @@ class IdentityAdmin(admin.ModelAdmin):
 
 @admin.register(PendingAffiliation)
 class PendingAffiliationAdmin(admin.ModelAdmin):
-    list_display = ('identity', 'affiliation_type', 'affiliation_id', 'role_name')
-    list_filter = ('affiliation_type',)
+    list_display = ('identity', 'get_aff_type', 'get_aff_name', 'role_name')
     actions = ['approve_selected', 'reject_selected']
 
     def get_queryset(self, request):
@@ -82,6 +90,14 @@ class PendingAffiliationAdmin(admin.ModelAdmin):
             log_admin_action(request.user.id, [obj], DELETION, "Rejected and deleted affiliation.")
             obj.delete()
         self.message_user(request, f"Successfully rejected and removed {count} requests.")
+
+    @admin.display(description="Type")
+    def get_aff_type(self, obj):
+        return obj.affiliation.get_affiliation_type_display()
+
+    @admin.display(description="Affiliation Name")
+    def get_aff_name(self, obj):
+        return obj.affiliation.name
 
 
 @admin.register(Profile)

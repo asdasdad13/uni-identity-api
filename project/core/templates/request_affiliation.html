@@ -5,12 +5,14 @@
 {% block content %}
 <h1>Request affiliation</h1>
 
-<div class="btn"><a href="{% url 'core:dashboard' %}">Return to dashboard</a></div>
+<div class="btn return-dashboard"><a href="{% url 'core:dashboard' %}">Return to dashboard</a></div>
 
-<form hx-post="{% url 'core:apply_affiliation' %}"
+<form
+    hx-post="{% url 'core:apply_affiliation' %}"
     hx-target="#submit-btn"
     hx-swap="outerHTML"
-    hx-indicator="#spinner">
+    hx-indicator="#spinner"
+>
     {% csrf_token %}
 
     <div class="form-group">

@@ -10,7 +10,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 class IdentityApiTests(APITestCase):
     def setUp(self):
         self.identity = IdentityFactory.create()
-        self.url = reverse('api:identity_me')
+        self.url = reverse('api:my_identity')
 
     @tag('API')
     def test_get_identity_with_valid_token(self):

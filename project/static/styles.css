@@ -4,11 +4,10 @@ body {
   justify-content: center;
   flex-direction: column;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
   margin: 0;
 }
 .container {
-  padding: 2.5rem;
   border-radius: 8px;
   max-width: 700px;
   width: 100%;
@@ -55,6 +54,10 @@ body {
   color: white;
 }
 
+.btn.return-dashboard {
+  margin: 0 0 3rem 0;
+}
+
 .errorlist, div.error-box p {
   color: red;
 }
@@ -85,18 +88,28 @@ body {
 .logout-btn:hover {
   background: rgba(255, 255, 255, 0.2);
 }
+header {
+  background: rgb(59, 130, 246);
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
 .navbar {
   gap: 1rem;
-  background: rgb(59, 130, 246);
   color: white;
-  padding: 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 700px;
 }
 
 ul#bottom-nav {
   list-style-type: none;
+  display: flex;
+  gap: 0.5rem;
 }
 
 #logout-form {
@@ -255,4 +268,54 @@ dd button:hover {
     border-radius: 4px;
     font-size: 1rem;
     outline: none;
+}
+
+/* Make this small and unimportant because it should probably not be there but idk */
+#unauthorise-apps {
+  font-size: small;
+  border: 2px solid rgb(255, 222, 112);
+  background-color: #fcffd4;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+#unauthorise-apps button {
+  background-color: rgb(94, 87, 0);
+}
+
+.roster-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+.roster-table th, .roster-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+.badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+.badge-stu {
+  background: #e0f2fe; color: #0369a1;
+}
+
+.badge-pf {
+  background: #fef3c7; color: #92400e;
+}
+
+section#your-modules, section#your-courses {
+  border: 2px solid rgb(255, 222, 112);
+  background-color: #fcffd4;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+section#your-courses {
+  border: 2px solid rgb(112, 255, 200);
+  background-color: #d4ffee;
 }

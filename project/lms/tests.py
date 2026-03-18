@@ -1,7 +1,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from unittest.mock import patch
-from core.factory import IdentityFactory, ProfileFactory, AffiliationsFactory
+from core.factory import IdentityFactory, ProfileFactory, AffiliationFactory
 
 
 class LmsViewTests(TestCase):
@@ -10,19 +10,22 @@ class LmsViewTests(TestCase):
         self.i1 = IdentityFactory.create()
         self.u1 = self.i1.user
         self.p1 = ProfileFactory.create(identity=self.i1)
-        self.r1 = AffiliationsFactory.create(identity=self.i1)
+        self.r1 = self.i1.affiliations.first()
 
     def force_authenticate_session(self, courses=None):
         """Helper to bypass @oauth_required and prime the session."""
         self.client.force_login(self.u1)
         session = self.client.session
+
         # @oauth_required checks if user is session-authenticated.
         # Prime the session with required info to bypass interactive
         # PKCE flow.
+
         session['user'] = {
             'sub': self.i1.institutional_id,
         }
-        if courses:
+
+        if courses is not None:
             session['courses'] = courses
 
         session.save()
@@ -56,13 +59,13 @@ class LmsViewTests(TestCase):
         mock_get.return_value.json.return_value = {
             'display_name': 'Preferred Name',
             'institutional_id': '12345',
+            'affiliations': [
+                {'affiliation_type': 'COURSE', 'affiliation_id': 'CS101', 'role_name': 'Student'},
+                {'affiliation_type': 'COURSE', 'affiliation_id': 'CS102', 'role_name': 'Rep'}
+            ]
         }
         
-        course_data = [
-            {'affiliation_id': 'CS101', 'role_name': 'Student'},
-            {'affiliation_id': 'CS102', 'role_name': 'Rep'}
-        ]
-        self.force_authenticate_session(course_data)
+        self.force_authenticate_session()
 
         response = self.client.get(reverse('lms:index'))
 

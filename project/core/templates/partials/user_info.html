@@ -1,4 +1,4 @@
-<div>
+<section>
     <h2>Your information</h2>
     <dl>
         <dt>ID</dt>
@@ -14,6 +14,44 @@
         {% include 'partials/preferred_name.html' %}
         
         <dt>Role</dt>
-        <dd>{{ role }}</dd>
+        <dd>
+            <span>
+                <strong>
+                    {% if status == 'STU' %}
+                        Student, 
+                    {% elif status == 'STA' %}
+                        Staff, 
+                    {% elif status == 'ALU' %}
+                        Alumni, 
+                    {% endif %}
+                </strong>
+                effective since <strong>{{ effective_date }}</strong>
+            </span>
+        </dd>
+
+        <dt>Date of birth</dt>
+        <dd>{{ date_of_birth }}</dd>
+        
+        <dt>Affiliations</dt>
+        <dd>
+
+            {% if not affiliations %}
+            <p class="helptext">No affiliations found.</p>
+            {% endif %}
+
+            <ul>
+                {% for aff in affiliations %}
+                    {% if not aff.is_active %}
+                        <li class="helptext">
+                            {{ aff.affiliation_id }} (⏳ Pending admin approval)
+                        </li>
+                    {% else %}
+                        <li>
+                            {{ aff.affiliation_id }}
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </dd>
     </dl>
-</div>
+</section>

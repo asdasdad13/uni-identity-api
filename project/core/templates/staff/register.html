@@ -11,6 +11,8 @@
     {% endfor %}
 {% endif %}
 
+<p>Upon successful registration, an institutional email address will automatically be generated for you.</p>
+
 <form method="post" novalidate>
     {% csrf_token %}
     {{ form.as_p }}

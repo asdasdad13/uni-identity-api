@@ -7,7 +7,7 @@ from django.http import HttpResponse, QueryDict
 from django.views.decorators.http import require_http_methods
 from django.views.generic.edit import CreateView
 from .forms import *
-from core.models import Identity, Profile, Affiliations
+from core.models import Identity, Profile, IdentityAffiliation
 from django.urls import reverse_lazy
 import datetime
 import time
@@ -47,27 +47,29 @@ def register(request):
 
 @login_required
 def dashboard(request):
+    token = get_token(request)
+    url = f"{IDP_BASE}/api/me/"
+    headers = {'Authorization': f"Bearer {token}", 'context': 'dashboard'}
+
     try:
-        # TODO: Replace with API endpoints api/me/
-        identity = (Identity.objects
-                    .select_related('profile')
-                    .prefetch_related('affiliations')
-                    .get(user=request.user))
-        # Try to get profile, handle the case where it might not exist
-        profile = getattr(identity, 'profile', None)
-        affiliations = identity.affiliations.all()
+        api_response = requests.get(url, headers=headers)
+        api_response.raise_for_status()
+        data = api_response.json()
 
         context = {
-            'email': request.user.username,
-            'full_name': identity.full_name,
-            'preferred_name': getattr(profile, 'preferred_name', None),
+            'display_name': data.get('display_name'),
+            'full_name': data.get('full_name'),
+            'preferred_name': data.get('profile', {}).get('preferred_name'),
 
-            'role': identity.get_status_display(),
-            'status_code': identity.status,
-            'id': identity.institutional_id,
-            'affiliations': affiliations,
+            'id': data.get('institutional_id'),
+            'email': data.get('email'),
+            'role_name': data.get('role_name'),
+            'status': data.get('status'),
+            'effective_date': data.get('effective_date'),
+            'date_of_birth': data.get('date_of_birth'),
+            'affiliations': data.get('affiliations', []),
         }
-    except Identity.DoesNotExist:
+    except Exception as e:
         # Fallback for superusers who might not have an Identity record,
         # e.g. admins
         context = {
@@ -163,7 +165,7 @@ class CreateAffiliationView(LoginRequiredMixin, UserPassesTestMixin, CreateView)
     """
 
     # Handles GET
-    model = Affiliations
+    model = IdentityAffiliation
     form_class = AffiliationRequestForm
     template_name = 'request_affiliation.html'
 
@@ -185,12 +187,17 @@ class CreateAffiliationView(LoginRequiredMixin, UserPassesTestMixin, CreateView)
 
         return super().form_valid(form)
     
+    def form_invalid(self, form):
+        print(f"Form Errors: {form.errors}") # CHECK YOUR TERMINAL
+        return super().form_invalid(form)
+    
 
 @login_required
 def load_roles(request):
     """A fragment loaded by HTMX for adaptive dropdown in CreateAffiliationView.
     Triggers after an affiliation type has been selected by the user.
     """
+    
     # Get user's selection
     affiliation_type = request.GET.get('affiliation_type')
 
@@ -200,13 +207,13 @@ def load_roles(request):
     return render(request, 'partials/role_dropdown_options.html', {'choices': choices})
 
 
-
 @login_required
 def get_roles(request):
     """View of enrolment status and information."""
-    affiliations = (Affiliations.objects
-          .filter(identity__user=request.user)
-          .values('affiliation_id', 'affiliation_type'))
+    affiliations = IdentityAffiliation.objects.filter(
+        identity__user=request.user
+    ).select_related('affiliation')
+    
     context = {
         'affiliations': affiliations
     }
@@ -262,8 +269,8 @@ def save_preferred_name(request):
 @staff_member_required
 def affiliation_approvals(request):
     """Lists all pending (inactive) role/affiliation requests."""
-    pending_requests = Affiliations.objects.filter(is_active=False)
-
+    pending_requests = IdentityAffiliation.objects.filter(is_active=False).select_related('identity', 'affiliation')
+    
     return render(request, 'admin/affiliation_approval.html', {
         'requests': pending_requests
     })
@@ -271,21 +278,22 @@ def affiliation_approvals(request):
 
 @staff_member_required
 def approve_affiliation(request, affiliation_id):
-    """Action to set a specific affiliation to active."""
+    """Action to approve or reject a specific request."""
+
     if request.htmx:
-        affiliation = get_object_or_404(Affiliations, id=affiliation_id)
+        affiliation = get_object_or_404(IdentityAffiliation, id=affiliation_id)
 
-        match request.POST.get("action"):
-            case "approve":
-                affiliation.is_active = True
-                affiliation.save()
-
-                log_admin_action(request.user.id, [affiliation], CHANGE, "Approved affiliation.")
-
-                return render(request, 'admin/partials/approved.html')
+    if request.htmx:
+        action = request.POST.get("action")
+        if action == "approve":
+            affiliation.is_active = True
+            affiliation.save()
+            log_admin_action(request.user.id, [affiliation], CHANGE, "Approved affiliation.")
+            return render(request, 'admin/partials/approved.html')
+        
+        elif action == "reject":
+            log_admin_action(request.user.id, [affiliation], DELETION, "Rejected and deleted affiliation.")
+            affiliation.delete()
+            return render(request, 'admin/partials/rejected.html')
             
-            case "reject":
-                log_admin_action(request.user.id, [affiliation], DELETION, "Rejected and deleted affiliation.")
-
-                affiliation.delete()
-                return render(request, 'admin/partials/rejected.html')
+    return HttpResponse(status=400)

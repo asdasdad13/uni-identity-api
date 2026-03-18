@@ -100,8 +100,23 @@ class CustomOAuth2Validator(OAuth2Validator):
     def _add_affiliation_data(self, claims, identity, key, types):
         """Helper to safely filter and attach data"""
         affs = identity.affiliations.filter(
-            affiliation_type__in=types, 
+            affiliation__affiliation_type__in=types,
             is_active=True
-        ).values('affiliation_type', 'affiliation_id', 'role_name')
+        ).values(
+            'role_name',
+            'affiliation__affiliation_type',
+            'affiliation__uid',
+            'affiliation__name'
+        )
+
+        # Clean up the dictionary keys so the client app gets the expected format
+        formatted_affs = []
+        for a in affs:
+            formatted_affs.append({
+                'role_name': a['role_name'],
+                'affiliation_type': a['affiliation__affiliation_type'],
+                'affiliation_id': a['affiliation__uid'], # Mapping UID back to 'id' for the app
+                'name': a['affiliation__name']
+            })
         
-        claims[key] = list(affs)
+        claims[key] = formatted_affs

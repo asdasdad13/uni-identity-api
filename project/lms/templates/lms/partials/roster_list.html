@@ -1,0 +1,32 @@
+<div class="roster-container animated-fade-in">
+    <h3>Class Roster for {{ affiliation_id }}:</h3>
+    
+    {% if classmates %}
+    <table class="roster-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Role</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for person in classmates %}
+            <tr>
+                <td>{{ person.display_name }}</td>
+                <td>
+                    <span class="badge badge-{{ person.status|lower }}">
+                        {% if person.status == 'STU' %}
+                            Student
+                        {% elif person.status == 'STA' %}
+                            Professor
+                        {% endif %}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted">No classmates found.</p>
+    {% endif %}
+</div>

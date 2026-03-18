@@ -47,22 +47,24 @@ def index(request):
 
     # Get user data through calling internal API GET request.
     token = get_token(request)
+    url = f"{IDP_BASE}/api/me/"
+    headers = {'Authorization': f"Bearer {token}", 'context': 'lms'}
 
     # Call internal REST API to get data
-    api_response = requests.get(
-        # Get data about this user's identity
-        f"{IDP_BASE}/api/display-name/", headers={'Authorization': f"Bearer {token}", 'context': 'lms'}
-    )
+    api_response = requests.get(url=url, headers=headers)
     
+    #TODO: get list of courses and modules (separately) from API
+
     if api_response.status_code == 200:
-        identity_data = api_response.json()
+        data = api_response.json()
+        affiliations = data.get('affiliations', [])
+
         context = {
-            'name': identity_data['display_name'],
-            'courses': request.session.get('courses', []),
-        }
+            'name': data.get('display_name'),
+            'courses': [a for a in affiliations if a['affiliation_type'] == 'COURSE'],
+            'modules': [a for a in affiliations if a['affiliation_type'] == 'MOD'],}
         return render(request, 'lms/index.html', context)
 
-    print(f"API Error: {api_response.status_code}\n")
     return HttpResponse("Failed to fetch identity data", status=api_response.status_code)
 
 
@@ -99,7 +101,8 @@ def logout(request):
 
 def logout_and_revoke(request):
     """Logout and revoke app access"""
-    access_token = request.session['access_token']
+    print(request.session.keys())
+    access_token = request.session['api_access_token']
 
     params = {
         'token': access_token,
@@ -111,7 +114,6 @@ def logout_and_revoke(request):
         # Revoke token
         requests.post(f"{IDP_BASE}/o/revoke_token/?{urlencode(params)}")
     
-    request.session.flush()
     return redirect('lms:index')
 
 
@@ -170,3 +172,29 @@ def callback(request):
 
     next_url = request.session.pop('oauth_next', 'lms:index')
     return redirect(next_url)
+
+
+@oauth_required
+def view_roster(request, roster_type, affiliation_id):
+    """Universal HTMX fragment for any roster type (course, module, etc)."""
+    token = get_token(request)
+
+    # Dynamically build the API URL based on the type
+    # Matches the API structure: /api/roster/course/CS101/
+    url = f"{IDP_BASE}/api/roster/{roster_type}/{affiliation_id}/"
+    headers = {'Authorization': f"Bearer {token}", 'context': 'lms'}
+    
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        classmates = response.json()
+
+    except Exception:
+        classmates = []
+
+    context = {
+        'classmates': classmates,
+        'affiliation_id': affiliation_id,
+    }
+    
+    return render(request, 'lms/partials/roster_list.html', context)

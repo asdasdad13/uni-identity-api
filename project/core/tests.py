@@ -122,15 +122,15 @@ class ProfileTestCase(TestCase):
         self.assertFalse(Identity.objects.filter(pk=pk2).exists())
         self.assertFalse(Profile.objects.filter(pk=pk2).exists())
 
-class AffiliationsTestCase(TestCase):
+class AffiliationTestCase(TestCase):
     def setUp(self):
         self.i1 = CompleteIdentityFactory.create()
         self.i2 = CompleteIdentityFactory.create(create_roles=2)
         
     @tag("database")
     def test_roles_exist(self):
-        i1_roles = Affiliations.objects.filter(identity=self.i1).count()
-        i2_roles = Affiliations.objects.filter(identity=self.i2).count()
+        i1_roles = IdentityAffiliation.objects.filter(identity=self.i1).count()
+        i2_roles = IdentityAffiliation.objects.filter(identity=self.i2).count()
 
         # Number of roles
         self.assertEqual(i1_roles, 1)
@@ -138,37 +138,50 @@ class AffiliationsTestCase(TestCase):
     
     @tag("database")
     def test_add_roles(self):
-        AffiliationsFactory.create(
-            identity=self.i1,
-            role_name='CM',
-            affiliation_type='CLUB',
-            affiliation_id='Chess_Club',
-            is_active = True
+        club = AffiliationFactory.create(
+            uid='Chess_Club',
+            name='University Chess Club',
+            affiliation_type='CLUB'
         )
 
-        i1_roles = Affiliations.objects.filter(identity=self.i1).count()
+        IdentityAffiliation.objects.create(
+            identity=self.i1,
+            affiliation=club,
+            role_name='CM',
+        )
+
+        i1_roles = IdentityAffiliation.objects.filter(identity=self.i1).count()
         self.assertEqual(i1_roles, 2)
 
     @tag("database")
     def test_delete_roles(self):
-        # Before deletion, i1 should have 1 role
-        i1_roles = Affiliations.objects.filter(identity=self.i1).count()
-        self.assertEqual(i1_roles, 1)
+        # Setup: Get the existing affiliation link
+        aff_link = self.i1.affiliations.first()
+        self.assertIsNotNone(aff_link, "Identity should have at least one role from factory.")
 
-        # Delete the 1 record of a role
-        Affiliations.objects.get(identity=self.i1).delete()
-        i1_roles_2 = Affiliations.objects.filter(identity=self.i1).count()
-        self.assertEqual(i1_roles_2, 0)
+        target_uid = aff_link.affiliation.uid
 
+        aff_link.delete()
+
+        i1_roles_after = self.i1.affiliations.count()
+        self.assertEqual(i1_roles_after, 0)
+
+        self.assertTrue(
+        Affiliation.objects.filter(uid=target_uid).exists(),
+        "The Course/Club entity should persist even after the user relationship is deleted."
+    )
+        
     @tag("database")
     def test_is_active(self):
-        r1 = Affiliations.objects.get(identity=self.i1)
+        # Get a junction record
+        r1 = IdentityAffiliation.objects.filter(identity=self.i1).first()
         self.assertTrue(r1.is_active)
 
-        # Set a role to inactive
+        # Set to inactive (Pending/Revoked)
         r1.is_active = False
         r1.save()
 
-        self.assertFalse(Affiliations.objects.get(identity=self.i1).is_active)
-        self.assertEqual(Affiliations.objects.filter(is_active=False).count(), 1)
-        self.assertEqual(Affiliations.objects.filter(is_active=True).count(), 2)
+        self.assertFalse(IdentityAffiliation.objects.get(id=r1.id).is_active)
+        # Check counts across the whole database
+        self.assertEqual(IdentityAffiliation.objects.filter(is_active=False).count(), 1)
+        self.assertEqual(IdentityAffiliation.objects.filter(is_active=True).count(), 2)
