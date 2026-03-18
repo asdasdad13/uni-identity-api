@@ -1,24 +1,23 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpResponse, QueryDict
 from django.views.decorators.http import require_http_methods
 from django.views.generic.edit import CreateView
-from .forms import *
 from core.models import Identity, Profile, IdentityAffiliation
 from django.urls import reverse_lazy
+from django.conf import settings
+from api.utils import get_token
+from .forms import *
+from .utils import generate_email
+import requests
 import datetime
 import time
-import re
-from .utils import log_admin_action
-from api.utils import get_token
-from django.contrib.admin.models import CHANGE, DELETION
-import requests
-from django.conf import settings
 
-IDP_BASE = settings.IDP_BASE_URL
+
+HOST_BASE_URL = settings.HOST_BASE_URL
 
 
 # Authentication levels for views
@@ -48,7 +47,7 @@ def register(request):
 @login_required
 def dashboard(request):
     token = get_token(request)
-    url = f"{IDP_BASE}/api/me/"
+    url = f"{HOST_BASE_URL}/api/me/"
     headers = {'Authorization': f"Bearer {token}", 'context': 'dashboard'}
 
     try:
@@ -83,24 +82,6 @@ def dashboard(request):
         }
 
     return render(request, 'dashboard.html', context)
-
-
-def generate_email(first_name, last_name, domain):
-    """Based on user's name initials."""
-    base_prefix = f"{first_name[0]}{last_name[0]}".lower() # Jane Doe -> jd
-    
-    # Clean non-alphanumeric characters
-    base_prefix = re.sub(r'[^a-zA-Z0-9]', '', base_prefix)
-    
-    email = f"{base_prefix}{domain}"
-    counter = 1
-    
-    # Check uniqueness against the User model
-    while User.objects.filter(username=email).exists():
-        email = f"{base_prefix}{counter}{domain}"
-        counter += 1
-        
-    return email
 
 
 class BaseRegisterView(CreateView):
@@ -210,15 +191,19 @@ def load_roles(request):
 @login_required
 def get_roles(request):
     """View of enrolment status and information."""
-    affiliations = IdentityAffiliation.objects.filter(
-        identity__user=request.user
-    ).select_related('affiliation')
-    
-    context = {
-        'affiliations': affiliations
-    }
 
-    return render(request, 'get_roles.html', context)
+    token = get_token(request)
+    headers = {'Authorization': f"Bearer {token}"}
+    url=f"{HOST_BASE_URL}/me/"
+    
+    # API call
+    response = requests.get(url, headers=headers)
+    
+    affiliations = []
+    if response.status_code == 200:
+        affiliations = response.json().get('affiliations', [])
+
+    return render(request, 'get_roles.html', {'affiliations': affiliations})
 
 
 @login_required
@@ -250,7 +235,7 @@ def save_preferred_name(request):
     token = get_token(request)
 
     # Call internal REST API to get data
-    url = f"{IDP_BASE}/api/preferred-name/"
+    url = f"{HOST_BASE_URL}/api/preferred-name/"
     data = {'preferred_name': new_name}
     headers = {'Authorization': f"Bearer {token}"}
 
@@ -280,20 +265,25 @@ def affiliation_approvals(request):
 def approve_affiliation(request, affiliation_id):
     """Action to approve or reject a specific request."""
 
-    if request.htmx:
-        affiliation = get_object_or_404(IdentityAffiliation, id=affiliation_id)
+    if not request.htmx:
+        return HttpResponse(status=400)
 
-    if request.htmx:
-        action = request.POST.get("action")
-        if action == "approve":
-            affiliation.is_active = True
-            affiliation.save()
-            log_admin_action(request.user.id, [affiliation], CHANGE, "Approved affiliation.")
+    token = get_token(request)
+    headers = {'Authorization': f"Bearer {token}"}
+    action = request.POST.get("action")
+    
+    url = f"{HOST_BASE_URL}/api/affiliations/{affiliation_id}/"
+
+    if action == "approve":
+        # API PATCH request to flip the active switch
+        resp = requests.patch(url, data={'is_active': True}, headers=headers)
+        if resp.status_code == 200:
             return render(request, 'admin/partials/approved.html')
         
-        elif action == "reject":
-            log_admin_action(request.user.id, [affiliation], DELETION, "Rejected and deleted affiliation.")
-            affiliation.delete()
+    elif action == "reject":
+        # API DELETE request to remove the pending link
+        resp = requests.delete(url, headers=headers)
+        if resp.status_code in [200, 204]:
             return render(request, 'admin/partials/rejected.html')
             
-    return HttpResponse(status=400)
+    return HttpResponse("API Error", status=500)

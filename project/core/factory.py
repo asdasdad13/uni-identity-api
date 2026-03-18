@@ -1,24 +1,36 @@
 """factory_boy for testing models."""
 import factory
-import factory.random
-from django.contrib.auth.models import User
-
+from core.utils import generate_email
 from .models import *
+from django.contrib.auth.hashers import make_password
 
 
 class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = User
+        exclude = ('temp_first', 'temp_last', 'domain_val')
 
-    first_name = factory.Faker("first_name")
-    last_name = factory.Faker("last_name")
+    temp_first = factory.Faker('first_name')
+    temp_last = factory.Faker('last_name')
+
+    first_name = ""
+    last_name = ""
     is_staff = False
+    domain_val = "@uni.ac.uk"
+    password = factory.django.Password('pw')
 
     @factory.lazy_attribute
-    def username(self):     # john1
-        random_int = factory.random.randgen.randint(100,999)
-        return f"{self.first_name.lower()}{random_int}"
-
+    def username(self):
+        return generate_email(self.temp_first, self.temp_last, self.domain_val)
+    
+    @factory.post_generation
+    def password(self, create, extracted, **kwargs):
+        if extracted is None:
+            self.password = UserFactory.PASSWORD
+        else:
+            self.password = make_password(extracted)
+UserFactory.PASSWORD = make_password('password')
+    
 
 class AdminFactory(factory.django.DjangoModelFactory):
     class Meta:
@@ -76,7 +88,7 @@ class ProfileFactory(factory.django.DjangoModelFactory):
 
     identity = factory.SubFactory(IdentityFactory)
     # Optional columns
-    preferred_name = "Joanna"
+    preferred_name = factory.Faker("name")
 
     # Dynamically created abbreviated_name
 

@@ -99,6 +99,12 @@ class IdentitySerializer(serializers.ModelSerializer):
                 data.pop(field, None)
         
         return data
+    
+
+class IdentityAffiliationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = IdentityAffiliation
+        fields = ['id', 'is_active', 'role_name', 'affiliation', 'identity']
 
 
 class PreferredNameSerializer(serializers.ModelSerializer):

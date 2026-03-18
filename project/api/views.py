@@ -9,6 +9,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from .serializers import *
 from rest_framework.generics import ListAPIView
 
+
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
@@ -118,3 +119,7 @@ class CourseRosterAPIView(BaseRosterAPIView):
 
 class ModuleRosterAPIView(BaseRosterAPIView):
     affiliation_type = 'MOD'
+
+
+class AffiliationAPIView(APIView):
+    pass

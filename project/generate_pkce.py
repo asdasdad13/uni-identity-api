@@ -20,7 +20,7 @@ APPLICATIONS = {
         'redirect_uri': 'http://127.0.0.1:8000/test-callback/',
         'scopes': 'openid profile identity affiliations:clubs',
     },
-    'Student/Staff Card': { # Preferred name
+    'Library Card': { # Preferred name
         'client_id': '7WxE9NUvTweka9Qbe4cO5LFJO3uDf8Ef9uhPacQi',
         'client_secret': 'IekRMuRAulipw8CC40BAkfvDLmscDDKR8Z6I7c3kCP9TDPVWuqAqwMIBTJaYoM306pajN85CvDkGZilT0QX0HbW1SjoRiRtq4jmtqFuXQ1n2hxD2lG827gFosgLXlEmV',
         'redirect_uri': 'http://127.0.0.1:8000/test-callback/',

@@ -11,10 +11,10 @@ from functools import wraps
 from api.utils import get_token
 
 
-IDP_BASE = settings.IDP_BASE_URL
+HOST_BASE_URL = settings.HOST_BASE_URL
 CLIENT_ID = settings.LMS_CLIENT_ID
 CLIENT_SECRET = settings.LMS_CLIENT_SECRET
-REDIRECT_URI = f"{IDP_BASE}/lms/callback/"
+REDIRECT_URI = f"{HOST_BASE_URL}/lms/callback/"
 
 
 def oauth_required(view_func):
@@ -47,7 +47,7 @@ def index(request):
 
     # Get user data through calling internal API GET request.
     token = get_token(request)
-    url = f"{IDP_BASE}/api/me/"
+    url = f"{HOST_BASE_URL}/api/me/"
     headers = {'Authorization': f"Bearer {token}", 'context': 'lms'}
 
     # Call internal REST API to get data
@@ -89,7 +89,7 @@ def login(request):
         'code_challenge_method': 'S256'
     }
     
-    auth_url = f"{IDP_BASE}/o/authorize/?{urlencode(params)}"
+    auth_url = f"{HOST_BASE_URL}/o/authorize/?{urlencode(params)}"
     return redirect(auth_url)
 
 
@@ -112,7 +112,7 @@ def logout_and_revoke(request):
 
     if access_token:
         # Revoke token
-        requests.post(f"{IDP_BASE}/o/revoke_token/?{urlencode(params)}")
+        requests.post(f"{HOST_BASE_URL}/o/revoke_token/?{urlencode(params)}")
     
     return redirect('lms:index')
 
@@ -132,7 +132,7 @@ def callback(request):
 
     # Exchange code for tokens from client to server.
     token_response = requests.post(
-        f'{IDP_BASE}/o/token/',
+        f'{HOST_BASE_URL}/o/token/',
         data={
             'grant_type': 'authorization_code',
             'code': code,
@@ -150,7 +150,7 @@ def callback(request):
     
     # Get user info
     userinfo_response = requests.get(
-        f"{IDP_BASE}/o/userinfo/",
+        f"{HOST_BASE_URL}/o/userinfo/",
         headers={'Authorization': f"Bearer {tokens['access_token']}"}
     )
 
@@ -181,7 +181,7 @@ def view_roster(request, roster_type, affiliation_id):
 
     # Dynamically build the API URL based on the type
     # Matches the API structure: /api/roster/course/CS101/
-    url = f"{IDP_BASE}/api/roster/{roster_type}/{affiliation_id}/"
+    url = f"{HOST_BASE_URL}/api/roster/{roster_type}/{affiliation_id}/"
     headers = {'Authorization': f"Bearer {token}", 'context': 'lms'}
     
     try:

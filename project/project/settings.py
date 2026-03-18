@@ -44,11 +44,11 @@ DEBUG = True
 if DEBUG:
     # Development
     ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
-    IDP_BASE_URL = 'http://127.0.0.1:8000'
+    HOST_BASE_URL = 'http://127.0.0.1:8000'
 else:
     # Production
     ALLOWED_HOSTS = ['yourusername.pythonanywhere.com']
-    IDP_BASE_URL = 'https://yourusername.pythonanywhere.com'
+    HOST_BASE_URL = 'https://yourusername.pythonanywhere.com'
     
 
 ALLOWED_HOSTS = []
