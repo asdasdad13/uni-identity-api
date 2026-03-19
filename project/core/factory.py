@@ -17,18 +17,23 @@ class UserFactory(factory.django.DjangoModelFactory):
     last_name = ""
     is_staff = False
     domain_val = "@uni.ac.uk"
-    password = factory.django.Password('pw')
 
     @factory.lazy_attribute
     def username(self):
         return generate_email(self.temp_first, self.temp_last, self.domain_val)
     
+    # Credits to rpkilby @ https://github.com/FactoryBoy/factory_boy/issues/224#issue-100455596
+    # Somehow it's the only way to create a password quickly.
+    # Otherwise, Django takes an eternity to hash passwords.
     @factory.post_generation
     def password(self, create, extracted, **kwargs):
         if extracted is None:
+            # Calculates hash once then copies the string into db for every user.
             self.password = UserFactory.PASSWORD
         else:
             self.password = make_password(extracted)
+
+# Set all factory User passwords as 'password'.
 UserFactory.PASSWORD = make_password('password')
     
 

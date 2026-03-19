@@ -50,36 +50,23 @@ def dashboard(request):
     url = f"{HOST_BASE_URL}/api/me/"
     headers = {'Authorization': f"Bearer {token}", 'context': 'dashboard'}
 
-    try:
-        api_response = requests.get(url, headers=headers)
-        api_response.raise_for_status()
-        data = api_response.json()
+    api_response = requests.get(url, headers=headers)
+    api_response.raise_for_status()
+    data = api_response.json()
 
-        context = {
-            'display_name': data.get('display_name'),
-            'full_name': data.get('full_name'),
-            'preferred_name': data.get('profile', {}).get('preferred_name'),
+    context = {
+        'display_name': data.get('display_name'),
+        'full_name': data.get('full_name'),
+        'preferred_name': data.get('profile', {}).get('preferred_name'),
 
-            'id': data.get('institutional_id'),
-            'email': data.get('email'),
-            'role_name': data.get('role_name'),
-            'status': data.get('status'),
-            'effective_date': data.get('effective_date'),
-            'date_of_birth': data.get('date_of_birth'),
-            'affiliations': data.get('affiliations', []),
-        }
-    except Exception as e:
-        # Fallback for superusers who might not have an Identity record,
-        # e.g. admins
-        context = {
-            'name': request.user.username,
-            'full_name': None,
-            'preferred_name': None,
-
-            'role': "Administrator",
-            'status_code': "ADM",
-            'id': "N/A",
-        }
+        'id': data.get('institutional_id'),
+        'email': data.get('email'),
+        'role_name': data.get('role_name'),
+        'status': data.get('status'),
+        'effective_date': data.get('effective_date'),
+        'date_of_birth': data.get('date_of_birth'),
+        'affiliations': data.get('affiliations', []),
+    }
 
     return render(request, 'dashboard.html', context)
 

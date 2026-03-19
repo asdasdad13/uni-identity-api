@@ -1,13 +1,13 @@
-from rest_framework.decorators import api_view, permission_classes
-from core.models import Identity
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
-from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.views import TokenObtainPairView
+from django.shortcuts import get_object_or_404
+
+from core.models import Identity, Affiliation
 from .serializers import *
-from rest_framework.generics import ListAPIView
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -23,31 +23,28 @@ class IdentityAPIView(APIView):
 
     def get(self, request, pk=None):
         if pk is None:  # Owner looking at own data
-            try:
-                instance = Identity.objects.get(user=request.user)
-                is_owner = True
-            except Identity.DoesNotExist:
-                return Response({"error": "Identity not found"}, status=404)
+            identity = getattr(request.user, 'identity', None)
+            is_owner = True
             
         else:   # Looking at someone else
-            instance = get_object_or_404(Identity, pk=pk)
-            is_owner = (request.user == instance.user)
+            identity = get_object_or_404(Identity, pk=pk)
+            is_owner = (request.user == identity.user)
 
-        request_context = request.headers.get('context', 'default')
+        request_context = request.headers.get('context', None)
 
         serializer = IdentitySerializer(
-            instance, 
+            identity, 
             context={
                 'request': request,
                 'is_owner': is_owner or request.user.is_staff,
-                'request_context': request_context
+                'request_context': request_context,
             }
         )
 
         return Response(serializer.data)
     
     def patch(self, request):
-        identity = request.user.identity
+        identity = getattr(request.user, 'identity', None)
         serializer = IdentitySerializer(identity, data=request.data, partial=True)
 
         if serializer.is_valid():
@@ -85,40 +82,42 @@ class DisplayNameAPIView(APIView):
         serializer = DisplayNameSerializer(identity)
         return Response(serializer.data)
 
-class BaseRosterAPIView(ListAPIView):
+class RosterAPIView(APIView):
+    """
+    Returns a list of all active members (identities) for a 
+    specific Affiliation (Course, Dept, etc.)
+    """
+
     serializer_class = IdentitySerializer
     permission_classes = [IsAuthenticated]
-    affiliation_type = None
 
-    def get_queryset(self):
-        target_id = self.kwargs.get('affiliation_id')
+    def get(self, request, affiliation_type, affiliation_id):
+        # Verify the Affiliation exists
+        group = get_object_or_404(
+            Affiliation,
+            affiliation_type=affiliation_type.upper(),
+            uid=affiliation_id
+        )
 
-        # Non-existent ID or ID has no affiliations yet
-        if not target_id or not self.affiliation_type:
-            return Identity.objects.none()
-            
-        # Filter identities that have an active affiliation type with this ID
-        return Identity.objects.filter(
-            affiliations__affiliation_id=target_id,
-            affiliations__affiliation_type=self.affiliation_type,
-            affiliations__is_active=True,
-        ).distinct()
+        # Query the junction table for active members
+        members = IdentityAffiliation.objects.filter(
+            affiliation=group,
+            is_active=True
+        ).select_related('identity') # Avoid the N+1 query problem.
 
-    def get_serializer_context(self):
-        # Since this is a list of OTHER people,
-        # is_owner will naturally be False for everyone except the requester.
-        context = super().get_serializer_context()
-        context['request_context'] = 'lms'
-        context['is_owner'] = False 
-        return context
-    
+        request_context = request.headers.get('context', None)
 
-class CourseRosterAPIView(BaseRosterAPIView):
-    affiliation_type = 'COURSE'
+        serializer = RosterMemberSerializer(
+            members,
+            many=True,
+            context={'request_context': request_context})   
 
-
-class ModuleRosterAPIView(BaseRosterAPIView):
-    affiliation_type = 'MOD'
+        return Response({
+            "affiliation_name": group.name,
+            "type": group.get_affiliation_type_display(),
+            "member_count": members.count(),
+            "roster": serializer.data
+        }, status=status.HTTP_200_OK)
 
 
 class AffiliationAPIView(APIView):

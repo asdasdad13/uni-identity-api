@@ -29,20 +29,27 @@ class ProfileSerializer(serializers.ModelSerializer):
 class DisplayNameSerializer(serializers.ModelSerializer):
     # custom field that will change based on context
     display_name = serializers.SerializerMethodField()
+    is_preferred = serializers.SerializerMethodField()
+    is_abbreviated = serializers.SerializerMethodField()
 
     class Meta:
         model = Identity
-        fields = ['display_name']
+        fields = ['display_name', 'is_preferred', 'is_abbreviated']
+
+    def _get_context(self):
+        """Helper to safely grab request context."""
+        # Access the context passed from the view
+        return self.context.get('request_context', 'default')
 
     def get_display_name(self, obj):
-        # access the context passed from the view
-        request_context = self.context.get('request_context')
+        request_context = self._get_context()
 
         match request_context:
             case 'transcript':
                 return obj.full_name
 
             case 'lms' | 'dashboard' | 'club-directory' | 'staff-directory':
+                # Return preferred if it exists, otherwise fallback to legal
                 return getattr(obj.profile, 'preferred_name', obj.full_name) or obj.full_name
 
             case 'library-card':
@@ -50,6 +57,21 @@ class DisplayNameSerializer(serializers.ModelSerializer):
             
             case _:
                 return obj.full_name
+            
+    # is_preferred and is_abbreviated only exist for showing off whether
+    # the app correctly retrieved the preferred/abbreviated names, or
+    # had to use a full name.
+    def get_is_preferred(self, obj):
+        """Check if the current context is displaying a preferred identity."""
+        request_context = self._get_context()
+        if request_context in ['lms', 'dashboard', 'club-directory', 'staff-directory']:
+            # True only if a preferred name actually exists and isn't empty
+            return bool(getattr(obj.profile, 'preferred_name', None))
+        return False
+            
+    def get_is_abbreviated(self, obj):
+        """Check if the current context is displaying an abbreviated identity."""
+        return self._get_context() == 'library-card'
 
     
 class AffiliationSerializer(serializers.ModelSerializer):
@@ -97,7 +119,7 @@ class IdentitySerializer(serializers.ModelSerializer):
             private_fields = ['email', 'profile', 'affiliations', 'institutional_id']
             for field in private_fields:
                 data.pop(field, None)
-        
+        print(f'IdentitySerializer: data={data}')
         return data
     
 
@@ -111,3 +133,18 @@ class PreferredNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ['preferred_name']
+
+
+class RosterMemberSerializer(serializers.ModelSerializer):
+    display_name = serializers.SerializerMethodField()
+    institutional_id = serializers.ReadOnlyField(source='identity.institutional_id')
+    role = serializers.CharField(source='get_role_name_display') # UG -> Undergraduate
+
+    class Meta:
+        model = IdentityAffiliation
+        fields = ['institutional_id', 'display_name', 'role', 'is_active']
+
+    def get_display_name(self, obj):
+        """Return suitable display name for user."""
+        serializer = DisplayNameSerializer(obj.identity, context=self.context)
+        return serializer.data.get('display_name')

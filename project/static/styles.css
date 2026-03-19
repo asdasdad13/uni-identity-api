@@ -45,7 +45,7 @@ body {
 }
 
 .btn-primary {
-  background-color: rgb(80, 167, 80);
+  background-color: rgb(80 100 167);
   color: white;
 }
 
@@ -117,7 +117,7 @@ ul#bottom-nav {
 }
 
 table {
-    border-collapse: collapse;
+  border-collapse: collapse;
   margin: 25px 0;
   font-size: 0.9em;
   font-family: sans-serif;
@@ -126,7 +126,7 @@ table {
 }
 
 table thead tr {
-  background-color: darkgray;
+  background-color: #2f3a85;
   color: rgb(255, 255, 255);
   text-align: left;
 }
@@ -283,27 +283,17 @@ dd button:hover {
   background-color: rgb(94, 87, 0);
 }
 
-.roster-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
-}
-.roster-table th, .roster-table td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #eee;
-}
 .badge {
     padding: 4px 8px;
     border-radius: 12px;
     font-size: 0.75rem;
     font-weight: bold;
 }
-.badge-stu {
+.badge-undergraduate {
   background: #e0f2fe; color: #0369a1;
 }
 
-.badge-pf {
+.badge-professor {
   background: #fef3c7; color: #92400e;
 }
 
@@ -316,6 +306,19 @@ section#your-modules, section#your-courses {
 }
 
 section#your-courses {
-  border: 2px solid rgb(112, 255, 200);
-  background-color: #d4ffee;
+  border: 2px solid rgb(154 186 255);
+  background-color: #eaf5ff;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animated-fade-in {
+  animation: fadeIn 0.3s ease-in forwards;
 }

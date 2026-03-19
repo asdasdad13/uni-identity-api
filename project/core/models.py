@@ -56,6 +56,10 @@ class Identity(models.Model):
         blank = False,
         default = None,
     )
+
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
     
     @property
     def full_name(self):

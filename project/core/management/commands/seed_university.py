@@ -4,7 +4,7 @@ from core.factory import *
 from core.utils import generate_email
 
 class Command(BaseCommand):
-    help = "Seeds the database with unique initial-based emails and clean User models."
+    help = "Seeds the database with User, Identity, Profile, Affiliation, IdentityAffiliation models."
 
     def handle(self, *args, **kwargs):
         self.stdout.write("Starting University Seeding")

@@ -187,14 +187,13 @@ def view_roster(request, roster_type, affiliation_id):
     try:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
-        classmates = response.json()
+        aff = response.json()
 
     except Exception:
-        classmates = []
+        aff = []
 
     context = {
-        'classmates': classmates,
-        'affiliation_id': affiliation_id,
+        'aff': aff,
     }
     
     return render(request, 'lms/partials/roster_list.html', context)
