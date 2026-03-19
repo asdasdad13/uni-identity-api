@@ -1,6 +1,5 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.views import redirect_to_login
-from oauth2_provider.views.generic import ProtectedResourceView
 from django.http import HttpResponse
 import requests
 import hashlib
@@ -8,19 +7,21 @@ import base64
 import secrets
 from urllib.parse import urlencode
 from django.conf import settings
-from oauth2_provider.decorators import protected_resource
 from functools import wraps
+from api.utils import get_token
 
-IDP_BASE = settings.IDP_BASE_URL
+
+HOST_BASE_URL = settings.HOST_BASE_URL
 CLIENT_ID = settings.LMS_CLIENT_ID
 CLIENT_SECRET = settings.LMS_CLIENT_SECRET
-REDIRECT_URI = f"{IDP_BASE}/lms/callback/"
+REDIRECT_URI = f"{HOST_BASE_URL}/lms/callback/"
 
 
 def oauth_required(view_func):
     """
-    Decorator to require OAuth authorization.
-    User must be logged into IdP AND have authorized this app via OAuth.
+    Decorator to require OAuth authorisation.
+    User must be logged into IdP AND have authorized decorated app via OAuth.
+    Redirects unauthorised users to login view.
     """
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
@@ -31,7 +32,7 @@ def oauth_required(view_func):
         
         # User is logged in, check if they've authorised via OAuth
         if 'user' not in request.session:
-            # Not authorized, start OAuth flow
+            # Not authorised, start OAuth flow
             return redirect('lms:login')
         
         # Proceed to view
@@ -43,16 +44,26 @@ def oauth_required(view_func):
 @oauth_required
 def index(request):
     """LMS homepage, requires OAuth authorisation (redirects to login if not yet authorised)."""
-    user = request.session['user']
-    courses = request.session.get('courses', [])
 
-    context = {
-        'name': user['name'],
-        'id': user['sub'],
-        'courses': courses,
-    }
+    # Get user data through calling internal API GET request.
+    token = get_token(request)
+    url = f"{HOST_BASE_URL}/api/me/"
+    headers = {'Authorization': f"Bearer {token}", 'context': 'lms'}
 
-    return render(request, 'lms/index.html', context)
+    # Call internal REST API to get data
+    api_response = requests.get(url=url, headers=headers)
+    
+    if api_response.status_code == 200:
+        data = api_response.json()
+        affiliations = data.get('affiliations', [])
+
+        context = {
+            'name': data.get('display_name'),
+            'courses': [a for a in affiliations if a['affiliation_type'] == 'COURSE'],
+            'modules': [a for a in affiliations if a['affiliation_type'] == 'MOD'],}
+        return render(request, 'lms/index.html', context)
+
+    return HttpResponse("Failed to fetch identity data", status=api_response.status_code)
 
 
 def login(request):
@@ -76,7 +87,7 @@ def login(request):
         'code_challenge_method': 'S256'
     }
     
-    auth_url = f"{IDP_BASE}/o/authorize/?{urlencode(params)}"
+    auth_url = f"{HOST_BASE_URL}/o/authorize/?{urlencode(params)}"
     return redirect(auth_url)
 
 
@@ -88,7 +99,7 @@ def logout(request):
 
 def logout_and_revoke(request):
     """Logout and revoke app access"""
-    access_token = request.session['token']
+    access_token = request.session['api_access_token']
 
     params = {
         'token': access_token,
@@ -98,9 +109,8 @@ def logout_and_revoke(request):
 
     if access_token:
         # Revoke token
-        requests.post(f"{IDP_BASE}/o/revoke_token/?{urlencode(params)}")
+        requests.post(f"{HOST_BASE_URL}/o/revoke_token/?{urlencode(params)}")
     
-    request.session.flush()
     return redirect('lms:index')
 
 
@@ -119,7 +129,7 @@ def callback(request):
 
     # Exchange code for tokens from client to server.
     token_response = requests.post(
-        f'{IDP_BASE}/o/token/',
+        f'{HOST_BASE_URL}/o/token/',
         data={
             'grant_type': 'authorization_code',
             'code': code,
@@ -137,7 +147,7 @@ def callback(request):
     
     # Get user info
     userinfo_response = requests.get(
-        f"{IDP_BASE}/o/userinfo/",
+        f"{HOST_BASE_URL}/o/userinfo/",
         headers={'Authorization': f"Bearer {tokens['access_token']}"}
     )
 
@@ -159,3 +169,28 @@ def callback(request):
 
     next_url = request.session.pop('oauth_next', 'lms:index')
     return redirect(next_url)
+
+
+@oauth_required
+def view_roster(request, roster_type, affiliation_id):
+    """Universal HTMX fragment for any roster type (course, module, etc)."""
+    token = get_token(request)
+
+    # Dynamically build the API URL based on the type
+    # Matches the API structure: /api/roster/course/CS101/
+    url = f"{HOST_BASE_URL}/api/roster/{roster_type}/{affiliation_id}/"
+    headers = {'Authorization': f"Bearer {token}", 'context': 'lms'}
+    
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        aff = response.json()
+
+    except Exception:
+        aff = []
+
+    context = {
+        'aff': aff,
+    }
+    
+    return render(request, 'lms/partials/roster_list.html', context)

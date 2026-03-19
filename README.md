@@ -27,7 +27,20 @@ pip install -r requirements.txt
 To make migrations and migrate:
 
 ```
+python manage.py makemigrations
 python manage.py migrate
+```
+
+## Flush the database with dummy data
+```
+python manage.py flush
+```
+
+## Seed the database with dummy data
+Database in source code is already seeded, but you may seed again if you happened to flush it.
+```
+python manage.py seed
+python manage.py setup_oidc_apps
 ```
 
 # 5. Run Server

@@ -4,78 +4,63 @@
 
 {% block content %}
 <div class="card">
-    <h1>Welcome, {{ name }}</h1>
-    <p>
-        <span class="badge">{{ role }}</span> <small style="color: #666; margin-left: 10px;">ID: {{ id }}</small>
-    </p>
-    
+    <h1>Welcome, {{ display_name }}</h1>
     <hr>
+    {% include 'partials/user_info.html' %}
     
-    {% if status_code == 'STA' %}
-        <h2>Staff Administration</h2>
-        <ul>
-            <li>Search Student Records</li>
-            <li>Audit Identity Sequences</li>
-            <li><a href="{% url 'core:apply_affiliation' %}">Apply to a department</a></li>
-        </ul>
-    {% elif status_code == 'STU' %}
-        <h2>Student Services</h2>
-        <ul>
-            <li><a href="{% url 'core:enrolment' %}">View My Enrolment</a></li>
-            <li>Request Identity Letter</li>
-            <li><a href="{% url 'core:apply_affiliation' %}">Apply to a module</a></li>
-        </ul>
-    {% else %}
-        <h2>Admin Services</h2>
-        <ul>
-            <li><a href="{% url 'core:affiliation_approvals' %}">Approve staff and student affiliations</a></li>
-            <li><a href="{% url 'admin:index' %}">Admin panels</a></li>
-        </ul>
-    {% endif %}
-    <div>
-        <h3>Your affiliations</h3>
-
-        {% if not affiliations %}
-        <p class="helptext">No affiliations found.</p>
-        {% endif %}
-
-        <ul>
-            {% for aff in affiliations %}
-                {% if not aff.is_active %}
-                    <li class="helptext">
-                        {{ aff.affiliation_id }} (⏳ Pending admin approval)
-                    </li>
-                {% else %}
-                    <li>
-                        {{ aff.affiliation_id }}
-                    </li>
-                {% endif %}
-            {% endfor %}
-        </ul>
-    </div>
-    <div>
-        <h3>
-            Other institutional services
-        </h3>
-        <div>
+    <section>
+        {% if status == 'STA' %}
+            <h2>Staff Administration</h2>
             <ul>
-                <li><a href="{% url 'lms:index' %}">Learning Management System (LMS)</a></li>
+                <li><a href="{% url 'core:get_roles' %}">View My Departments</a></li>
+                <li>Search Student Records</li>
+                <li>Audit Identity Sequences</li>
+                <li><a href="{% url 'core:apply_affiliation' %}">Apply to a department / course / module</a></li>
             </ul>
-            <form method="post" action="{% url 'lms:logout_and_revoke' %}" id="logout-form">
-                {% csrf_token %}
-                <button type="submit" class="logout-btn">Sign out and disconnect LMS from your institution account</button>
-            </form>
-        </div>
-    </div>
+        {% elif status == 'STU' %}
+            <h2>Student Services</h2>
+            <ul>
+                <li><a href="{% url 'core:get_roles' %}">View My Enrolments</a></li>
+                <li>Request Identity Letter</li>
+                <li><a href="{% url 'core:apply_affiliation' %}">Apply to a club / course / module</a></li>
+            </ul>
+        {% else %}
+            <h2>Admin Services</h2>
+            <ul>
+                <li><a href="{% url 'core:affiliation_approvals' %}">Approve staff and student affiliations</a></li>
+                <li><a href="{% url 'admin:index' %}">Admin panels</a></li>
+            </ul>
+        {% endif %}
+    </section>
+
+    {% if status != 'ADM' %}
+    <section id="unauthorise-apps">
+        <h3>Unauthorise apps</h3>
+        <p>Manually revoke session access for apps here. (This technically does not make sense in a university system context, but it is an integral element of OIDC IdPs.)</p>
+        
+        <table class="revoke-table">
+        <thead>
+            <tr>
+                <th scope="col">Application</th>
+                <th scope="col">Access Level</th>
+                <th scope="col">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>University LMS</td>
+                <td>Identity, Courses, Profile</td>
+                <td>
+                    <form method="POST" action="{% url 'lms:logout_and_revoke' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm">Revoke Access</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+    </table>
+    </section>
+    {% endif %}
 </div>
 
-<footer>
-    <div class="navbar">
-        <span>University System</span>
-        <form method="post" action="{% url 'core:logout' %}" id="logout-form">
-            {% csrf_token %}
-            <button type="submit" class="logout-btn">Sign Out</button>
-        </form>
-    </div>
-</footer>
 {% endblock %}

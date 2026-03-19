@@ -1,0 +1,16 @@
+<header>
+    <nav class="navbar">
+        <span>University System</span>
+        <ul id="bottom-nav">
+            <li class="btn btn-secondary"><a href="{% url 'core:dashboard' %}">Dashboard</a></li>
+            <li class="btn btn-secondary"><a href="{% url 'lms:index' %}">LMS</a></li>
+        </ul>
+        <form method="post" action="{% url 'lms:logout_and_revoke' %}" id="logout-form">
+            {% csrf_token %}
+        </form>
+        <form method="post" action="{% url 'core:logout' %}" id="logout-form">
+            {% csrf_token %}
+            <button type="submit" class="logout-btn btn">Sign Out</button>
+        </form>
+    </nav>
+</header>

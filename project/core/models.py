@@ -40,6 +40,7 @@ class Identity(models.Model):
     )
 
     status = models.CharField(
+        help_text='Status of university member.',
         max_length = 20,
         default = None,
         choices = {
@@ -50,9 +51,14 @@ class Identity(models.Model):
     )
 
     date_of_birth = models.DateField(
+        help_text="Date of birth.",
         null = True,
         blank = False,
         default = None,
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True
     )
     
     @property
@@ -122,13 +128,7 @@ class Profile(models.Model):
     preferred_name = models.CharField(
         max_length = 200,
         help_text = 'Given by the user.',
-        unique = False,
-    )
-    name_type = models.CharField(
-        help_text="For auditing. 'Preferred name', 'Nickname', 'Professional Alias', 'Maiden Name'",
-        max_length=100,
-        null=True,
-        blank=False,
+        blank=True
     )
 
     @property
@@ -144,51 +144,96 @@ class Profile(models.Model):
         return self.preferred_name
     
 
-class RolesAndAffiliations(models.Model):
-    """Link table modelling user's current roles and associations.
-    Important to determine ABAC access decisions."""
+class Affiliation(models.Model):
+    """The link between a User and a Course."""
+    TYPE_CHOICES = {
+        "CLUB": "Club",
+        "COURSE": "Course",
+        "MOD": "Module",
+        "DEPT": "Department"
+    }
+
+    uid = models.CharField(
+        max_length=100,
+        help_text="Unique institutional ID",
+        unique=True,
+    )
+    name = models.CharField(
+        max_length = 100,
+        unique = True,
+    )
+    affiliation_type = models.CharField(
+        max_length=10,
+        choices=TYPE_CHOICES
+    )
+
+    def __str__(self):
+        return self.name
+    
+    def get_affiliation_type_display(self):
+        return self.affiliation_type
+
+
+class IdentityAffiliation(models.Model):
+    """Junction table linking an Identity to an Affiliation."""
 
     identity = models.ForeignKey(
         Identity,
         on_delete = models.CASCADE,
         related_name = 'affiliations',
     )
+
+    affiliation = models.ForeignKey(
+        Affiliation, 
+        on_delete=models.CASCADE,
+        related_name='members'
+    )
+
+    ROLE_MAP = {
+        'CLUB': [('CM', 'Club Member'), ('CP', 'Club President')],
+        'COURSE': [('UG', 'Undergraduate'), ('PG', 'Postgraduate'), ('PF', 'Professor')],
+        'MOD': [('UG', 'Undergraduate'), ('PG', 'Postgraduate'), ('PF', 'Professor')],
+        'DEPT': [('PF', 'Professor'), ('AD', 'Admin')],
+    }
+
     role_name = models.CharField(
-        choices={
-            'UG': 'Undergraduate',
-            'PG': 'Postgraduate',
-            'CM': 'Club Member',
-            'CP': 'Club President',
-            'PF': 'Professor',
-            'AD': 'Admin',
-        },
-        help_text="The current institutional role.",
+        max_length=2,
+        choices=[
+            ('UG', 'Undergraduate'), ('PG', 'Postgraduate'), 
+            ('CM', 'Club Member'), ('CP', 'Club President'), 
+            ('PF', 'Professor'), ('AD', 'Admin'),
+        ],
+        help_text="Role within specified affiliation.",
     )
-    affiliation_type = models.CharField(
-        max_length=100,
-        help_text="Specific association.",
-        choices={
-            "CLUB": "Club",
-            "COURSE": "Course",
-            "MOD": "Module",
-            "DEPT": "Department"
-        }
-    )
-    affiliation_id = models.CharField(
-        # E.g. 'CS_UG_2024', 'Chess_Club'
-        help_text="The ID of the specific group that the identity is associated with."
-    )
+
+    AFFILIATION_TYPE_CHOICES = {
+        "CLUB": "Club",
+        "COURSE": "Course",
+        "MOD": "Module",
+        "DEPT": "Department"
+    }
+
     is_active = models.BooleanField(
-        help_text="Flag indicating the current validity of the role.",
-        default=True,
-        null=False,
-        blank=False,
-        )
-    
+        default=False
+    )
+
+    class Meta:
+        # Ensures a user can't join the same course twice.
+        unique_together = ('identity', 'affiliation')
+
     def __str__(self):
-        return self.role_name
+        return f"{self.identity.full_name} in {self.affiliation.name}"
     
-class PendingAffiliation(RolesAndAffiliations):
+
+class PendingAffiliationManager(models.Manager):
+    """Auto filter for pending affiliations."""
+    def get_queryset(self):
+        return super().get_queryset().filter(is_active=False)
+    
+    
+class PendingAffiliation(IdentityAffiliation):
+    objects = PendingAffiliationManager()
+
     class Meta:
         proxy = True
         verbose_name = "Pending Approval"

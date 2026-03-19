@@ -4,12 +4,14 @@
 
 {% block content %}
 
-<div class="btn"><a href="{% url 'core:register' %}">Return to home</a></div>
+<div class="btn"><a href="{% url 'core:index' %}">Return to home</a></div>
 {% if messages %}
     {% for message in messages %}
         <p>{{ message }}</p>
     {% endfor %}
 {% endif %}
+
+<p>Upon successful registration, an institutional email address will automatically be generated for you.</p>
 
 <form method="post" novalidate>
     {% csrf_token %}

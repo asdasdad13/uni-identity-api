@@ -1,0 +1,17 @@
+<div class="form-group">
+    <label>Specific Name:</label>
+    <select name="affiliation" class="form-select">
+        {% for entity in entities %}
+            <option value="{{ entity.id }}">{{ entity.name }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div class="form-group">
+    <label>Your Role:</label>
+    <select name="role_name" class="form-select">
+        {% for val, label in choices %}
+            <option value="{{ val }}">{{ label }}</option>
+        {% endfor %}
+    </select>
+</div>

@@ -3,24 +3,47 @@
 {% block title %}University LMS{% endblock %}
 
 {% block content %}
-<h1>University Learning Management System</h1>
+<h1>LMS</h1>
 <p>Welcome, {{ name }}!</p>
-<p>Student ID: {{ id }}</p>
-<h2>Your Courses:</h2>
-<ul>
-    {% for course in courses %}
-    <li>{{ course.affiliation_id }}</li>
-    <li>{{ course.role_name }}</li>
-    {% endfor %}
-</ul>
+<section>
+    <section id="your-courses">
+        <h2>Your Courses</h2>
+        <ul>
+            {% for course in courses %}
+            <li>
+                {{ course.affiliation_id }}
+                <button
+                    hx-get="{% url 'lms:view_roster' 'course' course.affiliation_id %}" 
+                    hx-target="#course-roster-display" 
+                    class="btn btn-primary">View roster
+                </button>
+            </li>
+            {% endfor %}
+        </ul>
 
-<footer>
-    <div class="navbar">
-        <span>University System</span>
-        <form method="post" action="{% url 'core:logout' %}" id="logout-form">
-            {% csrf_token %}
-            <button type="submit" class="logout-btn">Sign Out</button>
-        </form>
-    </div>
-</footer>
+        <div id="course-roster-display" class="main-content">
+            <p class="placeholder">Select a course to view the roster.</p>
+        </div>
+    </section>
+
+    <section id="your-modules">
+        <h2>Your Modules</h2>
+        <ul>
+            {% for module in modules %}
+            <li>
+                {{ module.affiliation_id }}
+                <button
+                    hx-get="{% url 'lms:view_roster' 'mod' module.affiliation_id %}" 
+                    hx-target="#module-roster-display" 
+                    class="btn btn-primary">View Classmates
+                </button>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <div id="module-roster-display" class="main-content">
+            <p class="placeholder">Select a module to view the roster.</p>
+        </div>
+    </section>
+</section>
 {% endblock %}

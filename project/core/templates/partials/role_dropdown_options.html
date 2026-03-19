@@ -1,7 +1,7 @@
 <select
     {% if not choices or choices.0.0 == '' %}disabled{% endif %}
     name="role_name"
-    id="role_name"
+    id="role-name"
     >
     {% for value, label in choices %}
         <option value="{{ value }}">{{ label }}</option>

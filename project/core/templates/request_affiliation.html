@@ -5,45 +5,41 @@
 {% block content %}
 <h1>Request affiliation</h1>
 
-<div class="btn"><a href="{% url 'core:dashboard' %}">Return to dashboard</a></div>
+<div class="btn return-dashboard"><a href="{% url 'core:dashboard' %}">Return to dashboard</a></div>
 
-<form hx-post="{% url 'core:apply_affiliation' %}"
-    hx-target="#submit-btn"
-    hx-swap="outerHTML"
-    hx-indicator="#spinner">
-    {% csrf_token %}
+<div id="affiliation-container">
+    <form
+        hx-post="{% url 'core:apply_affiliation' %}"
+        hx-target="#submit-btn"
+        hx-swap="outerHTML"
+        hx-indicator="#spinner"
+    >
+        {% csrf_token %}
 
-    <div class="form-group">
-        <label for="affiliation_type">Affiliation Type:</label>
-        <select name="affiliation_type"
-                hx-get="{% url 'core:ajax_load_roles' %}" 
-                hx-target="#role_name"
-                hx-swap="outerHTML"
-                hx-trigger="change">
-            <option value="">Select Type</option>
-            <option value="CLUB">Club</option>
-            <option value="COURSE">Course</option>
-            <option value="MOD">Module</option>
-            <option value="DEPT">Department</option>
-        </select>
-    </div>
-
-    <div class="form-group">
-        <label for="affiliation_id">Affiliation Name:</label>
-        <input type="text" name="affiliation_id">
-    </div>
-
-    <div class="form-group">
-        <label for="role_name">Role Name:</label>
-        {% include 'partials/role_dropdown_options.html' with choices=form.role_name.field.choices %}
-    </div>
-
-    <div id="submit">
-        <button id="submit-btn" type="submit" class="btn">Submit application</button>
-        <div id="spinner" class="htmx-indicator">
-            <div class="loading-ring"></div>
+        <div class="form-group">
+            <label>Affiliation Type:</label>
+            <select name="affiliation_type" 
+                    hx-get="{% url 'core:load_roles' %}" 
+                    hx-target="#dependent-fields" 
+                    hx-swap="innerHTML">
+                <option value="">---------</option>
+                {% for value, text in form.fields.affiliation_type.choices %}
+                    <option value="{{ value }}">{{ text }}</option>
+                {% endfor %}
+            </select>
         </div>
-    </div>
-</form>
+
+        <div id="dependent-fields">
+            <p class="text-muted">Please select an affiliation type first.</p>
+        </div>
+
+        <div id="submit">
+            <button id="submit-btn" type="submit" class="btn">Submit application</button>
+            <div id="spinner" class="htmx-indicator">
+                <div class="loading-ring"></div>
+            </div>
+        </div>
+    </form>
+</div>
 
 {% endblock %}

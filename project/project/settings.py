@@ -44,11 +44,11 @@ DEBUG = True
 if DEBUG:
     # Development
     ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
-    IDP_BASE_URL = 'http://127.0.0.1:8000'
+    HOST_BASE_URL = 'http://127.0.0.1:8000'
 else:
     # Production
     ALLOWED_HOSTS = ['yourusername.pythonanywhere.com']
-    IDP_BASE_URL = 'https://yourusername.pythonanywhere.com'
+    HOST_BASE_URL = 'https://yourusername.pythonanywhere.com'
     
 
 ALLOWED_HOSTS = []
@@ -88,6 +88,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -191,12 +192,10 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-# Allauth specific settings for Email-based identity
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
-
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    "TOKEN_OBTAIN_SERIALIZER": "api.serializers.CustomTokenObtainPairSerializer",
 }
