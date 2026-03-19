@@ -1,6 +1,6 @@
 <div>
     <h3>Class Roster for {{ aff.affiliation_name }}:</h3>
-    <p class="text-muted">{{ aff.member_count|default:0 }} people found.</p>
+    <p class="text-muted">{{ aff.members|default:0 }} people found.</p>
     
     {% if aff.roster %}
     <table class="animated-fade-in">
@@ -16,13 +16,10 @@
             <tr>
                 <td>{{ person.display_name }}</td>
                 <td>
-                    {{ person.display_name }}
                     {% if person.is_preferred %}
-                        <span class="badge bg-soft-info text-info ml-1" 
-                            style="font-size: 0.7rem;" 
-                            title="Identity modified by ABAC Privacy Policy">
-                            ❗ Using a preferred name
-                        </span>
+                        Yes <span aria-hidden="true">✔️</span>
+                    {% else %}
+                        No <span aria-hidden="true">✖️</span>
                     {% endif %}
                 </td>
                 <td>

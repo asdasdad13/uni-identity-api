@@ -41,6 +41,8 @@ class Command(BaseCommand):
             ("Grace", "Hopper", "STA", cs_dept),
             ("Hillary", "Rose", "STA", hr_dept), # HR Staff
         ]
+
+        profs = list()
         
         for first, last, status, dept in staff_data:
             domain = "@staff.uni.ac.uk"
@@ -56,9 +58,8 @@ class Command(BaseCommand):
                 legal_surname=last, 
                 status=status
             )
-            
-            # Create the Profile
-            ProfileFactory(identity=prof, preferred_name=f"Prof. {last}")
+
+            profs.append(prof)
             
             # Create the Dept Link
             IdentityAffiliationFactory(identity=prof, affiliation=dept, role_name="STA")
@@ -69,7 +70,10 @@ class Command(BaseCommand):
                     IdentityAffiliationFactory(identity=prof, affiliation=course, role_name="PF")
 
         # Create Students
+
+        students = list()
         student_count = 15
+
         for _ in range(student_count):
             temp_identity = IdentityFactory.build() 
             first, last = temp_identity.legal_forenames, temp_identity.legal_surname
@@ -78,23 +82,35 @@ class Command(BaseCommand):
             user = UserFactory(username=email, domain_val=domain)
             
             student = IdentityFactory(user=user, legal_forenames=first, legal_surname=last, status="STU")
-            ProfileFactory(identity=student)
+            students.append(student)
             
-            # Enroll in 1 Course
+            # Enroll in 1 course
             IdentityAffiliationFactory(identity=student, affiliation=random.choice(courses), role_name="UG")
             
-            # Enroll in 2-3 Modules
+            # Enroll in 2-3 modules
             assigned_mods = random.sample(modules, k=random.randint(2, 3))
             for mod in assigned_mods:
                 IdentityAffiliationFactory(identity=student, affiliation=mod, role_name="UG")
 
-            # Join 1-2 Clubs
+            # Join 1-2 clubs
             assigned_clubs = random.sample(clubs, k=random.randint(1, 2))
             for club in assigned_clubs:
                 IdentityAffiliationFactory(identity=student, affiliation=club, role_name="CM")
 
+        # Some will have profiles (preferred name), some won't.
+        all_identities = students + profs
+        random.shuffle(all_identities)
+
+        for identity in all_identities[:len(all_identities)//2]:
+            if identity.status == "STA":
+                ProfileFactory(identity=identity, preferred_name=f"Prof. {identity.legal_surname}")
+            else:
+                ProfileFactory(identity=identity)
+
+        # Known users with same info every time.
+        # For easy manual testing, e.g. logging in and viewing web app.
         # Create 1 known student
-        u1 = User.objects.get(pk=student_count)
+        u1 = User.objects.get(pk=student_count-1)
         u1.username = 'teststudent@uni.ac.uk'
         u1.save()
 

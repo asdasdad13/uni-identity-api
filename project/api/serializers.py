@@ -50,8 +50,13 @@ class DisplayNameSerializer(serializers.ModelSerializer):
 
             case 'lms' | 'dashboard' | 'club-directory' | 'staff-directory':
                 # Return preferred if it exists, otherwise fallback to legal
-                return getattr(obj.profile, 'preferred_name', obj.full_name) or obj.full_name
+                profile = getattr(obj, 'profile', None)
 
+                if profile:
+                    return getattr(profile, 'preferred_name', obj.full_name)
+                
+                return obj.full_name
+            
             case 'library-card':
                 return obj.abbreviated_name
             
@@ -62,11 +67,14 @@ class DisplayNameSerializer(serializers.ModelSerializer):
     # the app correctly retrieved the preferred/abbreviated names, or
     # had to use a full name.
     def get_is_preferred(self, obj):
-        """Check if the current context is displaying a preferred identity."""
-        request_context = self._get_context()
-        if request_context in ['lms', 'dashboard', 'club-directory', 'staff-directory']:
-            # True only if a preferred name actually exists and isn't empty
-            return bool(getattr(obj.profile, 'preferred_name', None))
+        """Check if the current user should display a preferred identity in the current context."""
+
+        profile = getattr(obj, 'profile', None)
+
+        if profile:
+            request_context = self._get_context()
+            if request_context in ['lms', 'dashboard', 'club-directory', 'staff-directory']:
+                return bool(getattr(profile, 'preferred_name', None))
         return False
             
     def get_is_abbreviated(self, obj):
@@ -137,17 +145,23 @@ class PreferredNameSerializer(serializers.ModelSerializer):
 
 class RosterMemberSerializer(serializers.ModelSerializer):
     display_name = serializers.SerializerMethodField()
+    is_preferred = serializers.SerializerMethodField()
     institutional_id = serializers.ReadOnlyField(source='identity.institutional_id')
     role = serializers.CharField(source='get_role_name_display') # UG -> Undergraduate
 
     class Meta:
         model = IdentityAffiliation
-        fields = ['institutional_id', 'display_name', 'role', 'is_active']
+        fields = ['institutional_id', 'display_name', 'role', 'is_active', 'is_preferred']
 
     def get_display_name(self, obj):
         """Return suitable display name for user."""
         serializer = DisplayNameSerializer(obj.identity, context=self.context)
         return serializer.data.get('display_name')
+    
+    def get_is_preferred(self, obj):
+        """Return suitable display name for user."""
+        serializer = DisplayNameSerializer(obj.identity, context=self.context)
+        return serializer.data.get('is_preferred')
     
 
 class PendingAffiliationSerializer(serializers.ModelSerializer):

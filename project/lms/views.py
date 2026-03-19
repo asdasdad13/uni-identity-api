@@ -53,13 +53,9 @@ def index(request):
     # Call internal REST API to get data
     api_response = requests.get(url=url, headers=headers)
     
-    #TODO: get list of courses and modules (separately) from API
-
     if api_response.status_code == 200:
         data = api_response.json()
         affiliations = data.get('affiliations', [])
-
-        print(affiliations)
 
         context = {
             'name': data.get('display_name'),
@@ -103,7 +99,6 @@ def logout(request):
 
 def logout_and_revoke(request):
     """Logout and revoke app access"""
-    print(request.session.keys())
     access_token = request.session['api_access_token']
 
     params = {

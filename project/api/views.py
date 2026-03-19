@@ -109,7 +109,7 @@ class RosterAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, affiliation_type, affiliation_id):
-        # Verify the Affiliation exists
+        # Get all members with this same affiliation
         group = get_object_or_404(
             Affiliation,
             affiliation_type=affiliation_type.upper(),
@@ -132,7 +132,7 @@ class RosterAPIView(APIView):
         return Response({
             "affiliation_name": group.name,
             "type": group.get_affiliation_type_display(),
-            "member_count": members.count(),
+            "members": members.count(),
             "roster": serializer.data
         }, status=status.HTTP_200_OK)
     
