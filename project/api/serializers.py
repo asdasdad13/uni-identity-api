@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from core.models import Identity, IdentityAffiliation, Profile
+from core.models import Identity, IdentityAffiliation, Profile, PendingAffiliation
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
@@ -119,7 +119,6 @@ class IdentitySerializer(serializers.ModelSerializer):
             private_fields = ['email', 'profile', 'affiliations', 'institutional_id']
             for field in private_fields:
                 data.pop(field, None)
-        print(f'IdentitySerializer: data={data}')
         return data
     
 
@@ -127,6 +126,7 @@ class IdentityAffiliationSerializer(serializers.ModelSerializer):
     class Meta:
         model = IdentityAffiliation
         fields = ['id', 'is_active', 'role_name', 'affiliation', 'identity']
+        read_only_fields = ['role_name', 'affiliation', 'identity']
 
 
 class PreferredNameSerializer(serializers.ModelSerializer):
@@ -148,3 +148,18 @@ class RosterMemberSerializer(serializers.ModelSerializer):
         """Return suitable display name for user."""
         serializer = DisplayNameSerializer(obj.identity, context=self.context)
         return serializer.data.get('display_name')
+    
+
+class PendingAffiliationSerializer(serializers.ModelSerializer):
+    member_name = serializers.CharField(source='identity.full_name', read_only=True)
+    institutional_id = serializers.CharField(source='identity.institutional_id', read_only=True)
+    
+    affiliation_type = serializers.CharField(source='affiliation.get_affiliation_type_display', read_only=True)
+    affiliation_name = serializers.CharField(source='affiliation.name', read_only=True)
+
+    class Meta:
+        model = PendingAffiliation
+        fields =[
+            'id', 'member_name', 'institutional_id', 
+            'affiliation_type', 'affiliation_name', 'role_name'
+        ]

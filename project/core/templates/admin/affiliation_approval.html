@@ -1,28 +1,28 @@
 {% extends 'base.html' %}
 
-{% block title %}Pending Module & Role Approvals{% endblock %}
+{% block title %}Pending Affiliation Approvals{% endblock %}
 
 {% block content %}
 
-<h1>Pending Module & Role Approvals</h1>
+<h1>Pending Affiliation Approvals</h1>
 
 <table>
     <thead>
         <tr>
-            <th>Student</th>
+            <th>Unieversity Member</th>
             <th>ID</th>
             <th>Affiliation Type</th>
-            <th>Affiliation ID</th>
+            <th>Affiliation Name</th>
             <th>Action</th>
         </tr>
     </thead>
     <tbody>
         {% for req in requests %}
         <tr>
-            <td>{{ req.identity.full_name }}</td>
-            <td>{{ req.identity.institutional_id }}</td>
+            <td>{{ req.member_name }}</td>
+            <td>{{ req.institutional_id }}</td>
             <td>{{ req.affiliation_type }}</td>
-            <td>{{ req.affiliation_id }}</td>
+            <td>{{ req.affiliation_name }}</td>
             <td>
                 <form
                     hx-post="{% url 'core:approve_affiliation' req.id %}"

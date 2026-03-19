@@ -14,7 +14,9 @@ urlpatterns = [
     path('identity/<int:pk>/', views.IdentityAPIView.as_view(), name='identity'),
     path('display-name/', views.DisplayNameAPIView.as_view(), name='display_name'),
     path('preferred-name/', views.PreferredNameAPIView.as_view(), name='preferred_name'),
-    path('roster/<str:affiliation_type>/<str:affiliation_id>/', views.RosterAPIView.as_view(), name='course_roster'),
+    path('roster/<str:affiliation_type>/<str:affiliation_id>/', views.RosterAPIView.as_view(), name='roster'),
+    path('pending-affiliations/', views.PendingAffiliationListAPIView.as_view(), name='pending_affiliations'),
+    path('affiliations/<int:pk>/', views.IdentityAffiliationDetailAPIView.as_view(), name='affiliation_detail'),
 
     path('token/', views.CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

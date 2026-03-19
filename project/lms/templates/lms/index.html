@@ -33,7 +33,7 @@
             <li>
                 {{ module.affiliation_id }}
                 <button
-                    hx-get="{% url 'lms:view_roster' 'module' module.affiliation_id %}" 
+                    hx-get="{% url 'lms:view_roster' 'mod' module.affiliation_id %}" 
                     hx-target="#module-roster-display" 
                     class="btn btn-primary">View Classmates
                 </button>

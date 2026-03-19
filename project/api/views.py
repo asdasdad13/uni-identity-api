@@ -1,13 +1,14 @@
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from django.contrib.admin.models import CHANGE, DELETION
+from rest_framework import status, generics
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.shortcuts import get_object_or_404
-
 from core.models import Identity, Affiliation
 from .serializers import *
+from .utils import log_admin_action
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -25,6 +26,22 @@ class IdentityAPIView(APIView):
         if pk is None:  # Owner looking at own data
             identity = getattr(request.user, 'identity', None)
             is_owner = True
+
+            # No Identity linked to user, like Admin.
+            # Give some values at least.
+            if not identity:
+                user = request.user
+                return Response({
+                    "display_name": "Administrator",
+                    "full_name": "Admin",
+                    "institutional_id": "N/A",
+                    "role_name": "Administrator",
+                    "status": "ADM",
+                    "email": getattr(user, 'email', user.username),
+                    "affiliations": [],
+                    "date_of_birth": None,
+                    "effective_date": None,
+                })
             
         else:   # Looking at someone else
             identity = get_object_or_404(Identity, pk=pk)
@@ -118,7 +135,35 @@ class RosterAPIView(APIView):
             "member_count": members.count(),
             "roster": serializer.data
         }, status=status.HTTP_200_OK)
+    
+
+class PendingAffiliationListAPIView(generics.ListAPIView):
+    queryset = PendingAffiliation.objects.select_related('identity', 'affiliation')
+    serializer_class = PendingAffiliationSerializer
+    permission_classes = [IsAdminUser]
 
 
-class AffiliationAPIView(APIView):
-    pass
+class IdentityAffiliationDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = IdentityAffiliation.objects.all()
+    serializer_class = IdentityAffiliationSerializer
+    permission_classes = [IsAdminUser]
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        
+        log_admin_action(
+            user_id=self.request.user.id, 
+            queryset=[instance], 
+            action_flag=CHANGE, 
+            change_message="Approved affiliation."
+        )
+        return super().perform_update(serializer)
+
+    def perform_destroy(self, instance):
+        log_admin_action(
+            user_id=self.request.user.id, 
+            queryset=[instance], 
+            action_flag=DELETION, 
+            change_message="Rejected and deleted affiliation."
+        )
+        instance.delete()

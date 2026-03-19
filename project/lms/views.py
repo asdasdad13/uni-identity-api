@@ -59,6 +59,8 @@ def index(request):
         data = api_response.json()
         affiliations = data.get('affiliations', [])
 
+        print(affiliations)
+
         context = {
             'name': data.get('display_name'),
             'courses': [a for a in affiliations if a['affiliation_type'] == 'COURSE'],

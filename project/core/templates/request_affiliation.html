@@ -7,45 +7,39 @@
 
 <div class="btn return-dashboard"><a href="{% url 'core:dashboard' %}">Return to dashboard</a></div>
 
-<form
-    hx-post="{% url 'core:apply_affiliation' %}"
-    hx-target="#submit-btn"
-    hx-swap="outerHTML"
-    hx-indicator="#spinner"
->
-    {% csrf_token %}
+<div id="affiliation-container">
+    <form
+        hx-post="{% url 'core:apply_affiliation' %}"
+        hx-target="#submit-btn"
+        hx-swap="outerHTML"
+        hx-indicator="#spinner"
+    >
+        {% csrf_token %}
 
-    <div class="form-group">
-        <label for="{{ form.affiliation_type.id_for_label }}">Affiliation Type:</label>
-        <select name="affiliation_type" 
-            id="id_affiliation_type"
-            hx-get="{% url 'core:load_roles' %}" 
-            hx-target="#role-name"
-            hx-swap="outerHTML"
-            hx-trigger="change"
-        >
-            {% for value, text in form.affiliation_type.field.choices %}
-                <option value="{{ value }}">{{ text }}</option>
-            {% endfor %}
-        </select>
-    </div>
-
-    <div class="form-group">
-        <label for="{{ form.affiliation_id.id_for_label }}">{{ form.affiliation_id.label }}</label>
-        {{ form.affiliation_id }}
-    </div>
-
-    <div id="role-name-group" class="form-group">
-        <label for="{{ form.role_name.id_for_label }}">{{ form.role_name.label }}</label>
-        {% include 'partials/role_dropdown_options.html' with choices=form.role_name.field.choices %}
-    </div>
-
-    <div id="submit">
-        <button id="submit-btn" type="submit" class="btn">Submit application</button>
-        <div id="spinner" class="htmx-indicator">
-            <div class="loading-ring"></div>
+        <div class="form-group">
+            <label>Affiliation Type:</label>
+            <select name="affiliation_type" 
+                    hx-get="{% url 'core:load_roles' %}" 
+                    hx-target="#dependent-fields" 
+                    hx-swap="innerHTML">
+                <option value="">---------</option>
+                {% for value, text in form.fields.affiliation_type.choices %}
+                    <option value="{{ value }}">{{ text }}</option>
+                {% endfor %}
+            </select>
         </div>
-    </div>
-</form>
+
+        <div id="dependent-fields">
+            <p class="text-muted">Please select an affiliation type first.</p>
+        </div>
+
+        <div id="submit">
+            <button id="submit-btn" type="submit" class="btn">Submit application</button>
+            <div id="spinner" class="htmx-indicator">
+                <div class="loading-ring"></div>
+            </div>
+        </div>
+    </form>
+</div>
 
 {% endblock %}

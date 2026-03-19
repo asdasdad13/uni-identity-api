@@ -167,6 +167,12 @@ class Affiliation(models.Model):
         choices=TYPE_CHOICES
     )
 
+    def __str__(self):
+        return self.name
+    
+    def get_affiliation_type_display(self):
+        return self.affiliation_type
+
 
 class IdentityAffiliation(models.Model):
     """Junction table linking an Identity to an Affiliation."""
@@ -184,7 +190,7 @@ class IdentityAffiliation(models.Model):
     )
 
     ROLE_MAP = {
-        'CLUB': [('CM', 'Club Member'), ('CP', 'President')],
+        'CLUB': [('CM', 'Club Member'), ('CP', 'Club President')],
         'COURSE': [('UG', 'Undergraduate'), ('PG', 'Postgraduate'), ('PF', 'Professor')],
         'MOD': [('UG', 'Undergraduate'), ('PG', 'Postgraduate'), ('PF', 'Professor')],
         'DEPT': [('PF', 'Professor'), ('AD', 'Admin')],
@@ -212,14 +218,22 @@ class IdentityAffiliation(models.Model):
     )
 
     class Meta:
-        # Ensures a user can't join the same course twice!
+        # Ensures a user can't join the same course twice.
         unique_together = ('identity', 'affiliation')
 
     def __str__(self):
         return f"{self.identity.full_name} in {self.affiliation.name}"
     
+
+class PendingAffiliationManager(models.Manager):
+    """Auto filter for pending affiliations."""
+    def get_queryset(self):
+        return super().get_queryset().filter(is_active=False)
+    
     
 class PendingAffiliation(IdentityAffiliation):
+    objects = PendingAffiliationManager()
+
     class Meta:
         proxy = True
         verbose_name = "Pending Approval"

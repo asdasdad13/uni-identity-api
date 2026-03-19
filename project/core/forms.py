@@ -41,25 +41,19 @@ class AffiliationRequestForm(forms.ModelForm):
     class Meta:
         model = IdentityAffiliation
         fields = ['affiliation', 'role_name']
-        labels = {
-            'affiliation_type': 'Club / Course / Module / Department Name',
-        }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # Get the selected type from the data (for HTMX) or the instance
-        aff_type = self.data.get('affiliation_type') or self.initial.get('affiliation_type')
-
-        # Filter the 'affiliation' choices based on the type selected
-        if aff_type:
-            self.fields['affiliation'].queryset = Affiliation.objects.filter(affiliation_type=aff_type)
-            self.fields['role_name'].choices = IdentityAffiliation.ROLE_MAP.get(aff_type, [])
+    def clean(self):
+        cleaned_data = super().clean()
+        affiliation = cleaned_data.get('affiliation')
         
-        else:
-            # Set the dynamic roles based on the junction table's ROLE_MAP
-            self.fields['affiliation'].queryset = Affiliation.objects.none()
-            self.fields['role_name'].choices = []
+        # We need the user from the view to check existing affiliations
+        user = self.initial.get('user') 
+        
+        if user and affiliation:
+            if IdentityAffiliation.objects.filter(identity=user.identity, affiliation=affiliation).exists():
+                raise forms.ValidationError("You have already joined or requested to join this affiliation.")
+        
+        return cleaned_data
 
     @staticmethod
     def get_role_choices(aff_type):

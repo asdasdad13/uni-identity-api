@@ -32,6 +32,8 @@
             </ul>
         {% endif %}
     </section>
+
+    {% if status != 'ADM' %}
     <section id="unauthorise-apps">
         <h3>Unauthorise apps</h3>
         <p>Manually revoke session access for apps here. (This technically does not make sense in a university system context, but it is an integral element of OIDC IdPs.)</p>
@@ -58,6 +60,7 @@
             </tbody>
     </table>
     </section>
+    {% endif %}
 </div>
 
 {% endblock %}

@@ -6,6 +6,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpResponse, QueryDict
 from django.views.decorators.http import require_http_methods
 from django.views.generic.edit import CreateView
+from django.utils.safestring import mark_safe
 from core.models import Identity, Profile, IdentityAffiliation
 from django.urls import reverse_lazy
 from django.conf import settings
@@ -15,7 +16,6 @@ from .utils import generate_email
 import requests
 import datetime
 import time
-
 
 HOST_BASE_URL = settings.HOST_BASE_URL
 
@@ -55,16 +55,16 @@ def dashboard(request):
     data = api_response.json()
 
     context = {
-        'display_name': data.get('display_name'),
-        'full_name': data.get('full_name'),
+        'display_name': data.get('display_name', None),
+        'full_name': data.get('full_name', None),
         'preferred_name': data.get('profile', {}).get('preferred_name'),
 
-        'id': data.get('institutional_id'),
-        'email': data.get('email'),
-        'role_name': data.get('role_name'),
-        'status': data.get('status'),
-        'effective_date': data.get('effective_date'),
-        'date_of_birth': data.get('date_of_birth'),
+        'id': data.get('institutional_id', None),
+        'email': data.get('email', None),
+        'role_name': data.get('role_name', None),
+        'status': data.get('status', None),
+        'effective_date': data.get('effective_date', None),
+        'date_of_birth': data.get('date_of_birth', None),
         'affiliations': data.get('affiliations', []),
     }
 
@@ -156,9 +156,20 @@ class CreateAffiliationView(LoginRequiredMixin, UserPassesTestMixin, CreateView)
         return super().form_valid(form)
     
     def form_invalid(self, form):
-        print(f"Form Errors: {form.errors}") # CHECK YOUR TERMINAL
-        return super().form_invalid(form)
+        if self.request.htmx:
+            error_html = "".join([f'<div class="alert alert-danger">{err}</div>' 
+                             for err in form.non_field_errors()])
+            response = HttpResponse(mark_safe(error_html))
+        
+            # Tell HTMX to ignore #submit-btn and hit the error container instead
+            response['HX-Retarget'] = '#affiliation-container'
+            return response
     
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        # Pass the user in so the 'clean' method can check for duplicates
+        kwargs['initial'] = {'user': self.request.user}
+        return kwargs
 
 @login_required
 def load_roles(request):
@@ -166,13 +177,17 @@ def load_roles(request):
     Triggers after an affiliation type has been selected by the user.
     """
     
-    # Get user's selection
     affiliation_type = request.GET.get('affiliation_type')
 
-    # Update role_name options in view of form
-    choices = AffiliationRequestForm.get_role_choices(affiliation_type)
+    # Get the specific data for this type
+    entities = Affiliation.objects.filter(affiliation_type=affiliation_type)
+    role_choices = IdentityAffiliation.ROLE_MAP.get(affiliation_type, [])
 
-    return render(request, 'partials/role_dropdown_options.html', {'choices': choices})
+    # Return the "fragment" that contains BOTH dropdowns
+    return render(request, 'partials/affiliation_options_update.html', {
+        'entities': entities,
+        'choices': role_choices
+    })
 
 
 @login_required
@@ -237,15 +252,27 @@ def save_preferred_name(request):
     return HttpResponse(api_response)
 
 
-# Admins can view and approve affiliation requests 
+# Admins can view and approve affiliation requests.
+
 @staff_member_required
 def affiliation_approvals(request):
     """Lists all pending (inactive) role/affiliation requests."""
-    pending_requests = IdentityAffiliation.objects.filter(is_active=False).select_related('identity', 'affiliation')
+
+    token = get_token(request)
+
+    # Call internal REST API to get data
+    url = f"{HOST_BASE_URL}/api/pending-affiliations/"
+    headers = {'Authorization': f"Bearer {token}"}
+
+    api_response = requests.get(url=url, headers=headers)
+
+    # Re-render user info board with new name
+    if api_response.status_code == 200:
+        context = {
+            'requests': api_response.json()
+        }
     
-    return render(request, 'admin/affiliation_approval.html', {
-        'requests': pending_requests
-    })
+    return render(request, 'admin/affiliation_approval.html', context)
 
 
 @staff_member_required
@@ -257,18 +284,17 @@ def approve_affiliation(request, affiliation_id):
 
     token = get_token(request)
     headers = {'Authorization': f"Bearer {token}"}
+    # Get user's selected action from the form
     action = request.POST.get("action")
     
     url = f"{HOST_BASE_URL}/api/affiliations/{affiliation_id}/"
 
     if action == "approve":
-        # API PATCH request to flip the active switch
         resp = requests.patch(url, data={'is_active': True}, headers=headers)
         if resp.status_code == 200:
             return render(request, 'admin/partials/approved.html')
         
     elif action == "reject":
-        # API DELETE request to remove the pending link
         resp = requests.delete(url, headers=headers)
         if resp.status_code in [200, 204]:
             return render(request, 'admin/partials/rejected.html')
