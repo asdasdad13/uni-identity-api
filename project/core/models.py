@@ -77,15 +77,15 @@ class Identity(models.Model):
         CHECK_DIGITS = "YXWURNMLJHEAB"
         
         # 1a. Remove the third digit.
-        sliced_digits: str = digits[:2] + digits[3:]  # e.g. 123456 -> 12456
+        sliced_digits = digits[:2] + digits[3:]  # e.g. 123456 -> 12456
 
         # 1b. Convert to a usable format for scalar multiplication later.
-        digits_list: list[int] = [int(digit) for digit in sliced_digits]
+        digits_list = [int(digit) for digit in sliced_digits]
 
         # 2. Compute the weighted sum s = w1*d1 + ... + w6*d1
-        weight: list[int] = WEIGHTS[cohort_prefix]
-        prods: list[int] = [w*d for w, d in zip(weight, digits_list)]
-        weighted_sum: int = sum(prods)
+        weight = WEIGHTS[cohort_prefix]
+        prods = [w*d for w, d in zip(weight, digits_list)]
+        weighted_sum = sum(prods)
 
         # 3. Find the check digit corresponding to the remainder of weighted sum modulo 13
         return CHECK_DIGITS[weighted_sum % 13]

@@ -3,8 +3,15 @@
 {% block title %}University Identity Portal{% endblock %}
 
 {% block content %}
-<div>
-    <div class="btn"><a href="{% url 'core:login' %}">Login</a></div>
-    <div class="btn"><a href="{% url 'core:register' %}">Register</a></div>
+<div class="centred-main">
+    <h1>Welcome</h1>
+    <p>Please login to access university services.</p>
+    <div id="login-buttons">
+        <p>
+            <a class="btn btn-primary" href="{% url 'core:login' %}">Login</a>
+            or 
+            <a class="btn btn-secondary" href="{% url 'core:register' %}">Register</a>
+        </p>
+    </div>
 </div>
 {% endblock %}
