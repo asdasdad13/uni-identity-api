@@ -1,9 +1,20 @@
 <header>
     <nav class="navbar">
-        <span>University System</span>
-        <ul id="bottom-nav">
-            <li class="btn btn-secondary"><a href="{% url 'core:dashboard' %}">Dashboard</a></li>
-            <li class="btn btn-secondary"><a href="{% url 'lms:index' %}">LMS</a></li>
+        <a id="logo" href="{% url 'core:index' %}" title="Home" aria-label="homepage">University System</a>
+        <ul id="main-nav-links">
+            {% if user.is_authenticated and user.identity %}
+                <li><a href="{% url 'core:dashboard' %}">Dashboard</a></li>
+                <li><a href="{% url 'lms:index' %}">LMS</a></li>
+
+                {% if user.identity.status == 'STU' %}
+                    <li><a href="{% url 'lms:index' %}">Transcript</a></li>
+                    <li><a href="{% url 'lms:index' %}">Club Directory</a></li>
+                {% elif user.identity.status == 'STA' %}
+                    <li><a href="{% url 'lms:index' %}">Staff Directory</a></li>
+                {% endif %}
+
+                    <li><a href="{% url 'lms:index' %}">Library Card</a></li>
+            {% endif %}
         </ul>
         <form method="post" action="{% url 'lms:logout_and_revoke' %}" id="logout-form">
             {% csrf_token %}

@@ -110,32 +110,16 @@ class Command(BaseCommand):
         # Known users with same info every time.
         # For easy manual testing, e.g. logging in and viewing web app.
         # Create 1 known student
-        u1 = User.objects.get(pk=student_count-1)
-        u1.username = 'teststudent@uni.ac.uk'
-        u1.save()
-
-        i1 = Identity.objects.get(user=u1)
-        i1.legal_forenames = 'Christopher'
-        i1.legal_surname = 'Burton'
-        i1.save()
-
-        p1 = Profile.objects.get(identity=i1)
-        p1.preferred_name = 'Chrissie'
-        p1.save()
+        s_user = UserFactory(username='teststudent@uni.ac.uk', domain_val='@uni.ac.uk')
+        s_identity = IdentityFactory(user=s_user, legal_forenames='Fooson', legal_surname='Barson', status="STU")
+        ProfileFactory(identity=s_identity, preferred_name='Foobar')
+        IdentityAffiliationFactory(identity=s_identity, affiliation=random.choice(courses), role_name="UG")
 
         # Create 1 known staff
-        u2 = User.objects.get(pk=len(staff_data))
-        u2.username = 'teststaff@staff.uni.ac.uk'
-        u2.save()
-
-        i2 = Identity.objects.get(user=u1)
-        i2.legal_forenames = 'Alan'
-        i2.legal_surname = 'Turing'
-        i2.save()
-
-        p2 = Profile.objects.get(identity=i1)
-        p2.preferred_name = 'Prof. Turing'
-        p2.save()
+        t_user = UserFactory(username='teststaff@staff.uni.ac.uk', domain_val='@staff.uni.ac.uk')
+        t_identity = IdentityFactory(user=t_user, legal_forenames='Alan', legal_surname='Turing', status="STA")
+        ProfileFactory(identity=t_identity, preferred_name='Prof. Turing')
+        IdentityAffiliationFactory(identity=t_identity, affiliation=cs_dept, role_name="STA")
 
         # Create 1 known superuser
         admin_email = 'testadmin@staff.uni.ac.uk'

@@ -57,7 +57,7 @@ def dashboard(request):
     context = {
         'display_name': data.get('display_name', None),
         'full_name': data.get('full_name', None),
-        'preferred_name': data.get('profile', {}).get('preferred_name'),
+        'preferred_name': (data.get('profile') or {}).get('preferred_name'),
 
         'id': data.get('institutional_id', None),
         'email': data.get('email', None),
