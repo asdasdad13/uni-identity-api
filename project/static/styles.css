@@ -13,8 +13,6 @@ body {
   width: 100%;
   min-height: inherit;
   height: calc(100vh - 60px);
-  display: grid;
-  place-content: center;
   margin-top: center;
 }
 
@@ -28,6 +26,7 @@ main {
   margin: 0 auto;
   height: inherit;
   align-content: center;
+  justify-self: center;
 }
 
 .centred-main ul {
@@ -96,7 +95,6 @@ main {
   background: white;
   border: 1px solid white;
   padding: 1.5rem;
-  margin: calc(60px + 3rem) auto;
   max-width: 800px;
   border-radius: 8px;
   box-shadow: 10px 10px 10px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
@@ -402,4 +400,175 @@ section#your-courses {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Library Card */
+.id-card-container {
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.library-card {
+    width: 450px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    border: 1px solid #ddd;
+    overflow: hidden;
+}
+
+.card-header {
+    background-color: #003057; /* Academic Blue */
+    color: #ffffff;
+    padding: 20px;
+    text-align: center;
+}
+
+.card-header h1 {
+    margin: 0;
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.card-body {
+    display: flex;
+    padding: 25px;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.photo-area {
+    flex: 0 0 110px;
+}
+
+.photo-placeholder {
+    width: 110px;
+    height: 140px;
+    background-color: #f0f2f5;
+    border: 2px solid #e1e4e8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #959da5;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+/* Info Area */
+.info-area {
+    flex: 1;
+}
+
+.user-name {
+    margin: 0;
+    font-size: 1.6rem;
+    color: #1a1a1a;
+    line-height: 1.2;
+}
+
+.status-badge {
+    display: inline-block;
+    background-color: #e7f3ff;
+    color: #007bff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-top: 5px;
+    text-transform: uppercase;
+}
+
+.details-list {
+    margin-top: 15px;
+    padding: 0;
+    list-style: none;
+    font-size: 0.9rem;
+    color: #444;
+}
+
+.details-list li {
+    margin-bottom: 5px;
+}
+
+.card-footer { /* Barcode */
+    background-color: #1a1a1a;
+    color: #ffffff;
+    padding: 15px;
+    text-align: center;
+}
+
+.barcode-sim {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.2rem;
+    letter-spacing: 8px;
+    margin-bottom: 5px;
+}
+
+.footer-hint {
+    font-size: 0.65rem;
+    opacity: 0.8;
+}
+
+/* Transcript */
+.transcript-container {
+    background-color: #f4f4f9;
+    padding: 50px 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.transcript-paper {
+    background: white;
+    width: 210mm; /* A4 Ratio */
+    min-height: 297mm;
+    padding: 40px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    border-top: 8px solid #003057;
+}
+
+.transcript-header {
+    text-align: center;
+    border-bottom: 2px solid #eee;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+}
+
+.transcript-header h1 { font-size: 1.8rem; margin: 0; color: #333; }
+.institution-name { font-weight: bold; color: #003057; text-transform: uppercase; }
+
+.student-info { margin-bottom: 30px; line-height: 1.6; }
+.info-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+
+.transcript-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 40px;
+}
+
+.transcript-table th {
+    background-color: #f8f9fa;
+    text-align: left;
+    padding: 12px;
+    border-bottom: 2px solid #333;
+}
+
+.transcript-table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.transcript-footer {
+    margin-top: 50px;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+.gpa-box { font-size: 1.2rem; margin-bottom: 20px; }
+.notary-text { font-size: 0.8rem; color: #888; font-style: italic; }
+
+table tbody tr:nth-of-type(even) {
+  background-color: white;
 }

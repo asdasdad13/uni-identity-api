@@ -12,6 +12,7 @@
         <tr>
             <th>Affiliation type</th>
             <th>Affiliation ID</th>
+            <th>Affiliation Name</th>
         </tr>
     </thead>
     <tbody>
@@ -22,6 +23,9 @@
                 </td>
                 <td>
                     {{ affiliation.affiliation_id }}
+                </td>
+                <td>
+                    {{ affiliation.affiliation_name }}
                 </td>
             </tr>
         {% endfor %}

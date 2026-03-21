@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}University Staff Directory{% endblock %}
+
+{% block content %}
+<h1>Staff Directory</h1>
+<p>Welcome, {{ name }}!</p>
+<section>
+    <section id="your-courses">
+        <h2>Your Departments</h2>
+        <ul>
+            {% for department in departments %}
+            <li>
+                {{ department.affiliation_id }}
+                <button
+                    hx-get="{% url 'staff:view_roster' 'dept' department.affiliation_id %}" 
+                    hx-target="#course-roster-display" 
+                    class="btn btn-primary">View roster
+                </button>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <div id="course-roster-display" class="main-content">
+            <p class="placeholder">Select a club to view the roster.</p>
+        </div>
+    </section>
+</section>
+{% endblock %}

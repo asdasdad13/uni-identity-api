@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth.views import redirect_to_login
 from django.http import HttpResponse
 import requests
 import hashlib
@@ -7,41 +6,18 @@ import base64
 import secrets
 from urllib.parse import urlencode
 from django.conf import settings
-from functools import wraps
 from api.utils import get_token
+from core.utils import oauth_required
 
+APP_NAME = 'lms'
 
 HOST_BASE_URL = settings.HOST_BASE_URL
 CLIENT_ID = settings.LMS_CLIENT_ID
 CLIENT_SECRET = settings.LMS_CLIENT_SECRET
-REDIRECT_URI = f"{HOST_BASE_URL}/lms/callback/"
+REDIRECT_URI = f"{HOST_BASE_URL}/{APP_NAME}/callback/"
 
 
-def oauth_required(view_func):
-    """
-    Decorator to require OAuth authorisation.
-    User must be logged into IdP AND have authorized decorated app via OAuth.
-    Redirects unauthorised users to login view.
-    """
-    @wraps(view_func)
-    def wrapper(request, *args, **kwargs):
-        # Check if user is logged into IdP
-        if not request.user.is_authenticated:
-            # Not logged in, redirect to IdP login
-            return redirect_to_login(request.get_full_path())
-        
-        # User is logged in, check if they've authorised via OAuth
-        if 'user' not in request.session:
-            # Not authorised, start OAuth flow
-            return redirect('lms:login')
-        
-        # Proceed to view
-        return view_func(request, *args, **kwargs)
-    
-    return wrapper
-
-
-@oauth_required
+@oauth_required(app_name=APP_NAME)
 def index(request):
     """LMS homepage, requires OAuth authorisation (redirects to login if not yet authorised)."""
 
@@ -171,7 +147,7 @@ def callback(request):
     return redirect(next_url)
 
 
-@oauth_required
+@oauth_required(app_name=APP_NAME)
 def view_roster(request, roster_type, affiliation_id):
     """Universal HTMX fragment for any roster type (course, module, etc)."""
     token = get_token(request)

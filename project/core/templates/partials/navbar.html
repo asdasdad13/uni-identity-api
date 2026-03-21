@@ -7,18 +7,15 @@
                 <li><a href="{% url 'lms:index' %}">LMS</a></li>
 
                 {% if user.identity.status == 'STU' %}
-                    <li><a href="{% url 'lms:index' %}">Transcript</a></li>
-                    <li><a href="{% url 'lms:index' %}">Club Directory</a></li>
+                    <li><a href="{% url 'transcript:index' %}">Transcript</a></li>
+                    <li><a href="{% url 'clubs:index' %}">Club Directory</a></li>
                 {% elif user.identity.status == 'STA' %}
-                    <li><a href="{% url 'lms:index' %}">Staff Directory</a></li>
+                    <li><a href="{% url 'staff:index' %}">Staff Directory</a></li>
                 {% endif %}
 
-                    <li><a href="{% url 'lms:index' %}">Library Card</a></li>
+                    <li><a href="{% url 'library:index' %}">Library Card</a></li>
             {% endif %}
         </ul>
-        <form method="post" action="{% url 'lms:logout_and_revoke' %}" id="logout-form">
-            {% csrf_token %}
-        </form>
         <form method="post" action="{% url 'core:logout' %}" id="logout-form">
             {% csrf_token %}
             <button type="submit" class="logout-btn btn">Sign Out</button>
