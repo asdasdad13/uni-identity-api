@@ -37,10 +37,9 @@ def oauth_required(app_name):
                 return redirect_to_login(request.get_full_path())
             
             # User is logged in, check if they've authorised via OAuth
-            if 'user' not in request.session:
+            if f'{app_name}_access_token' not in request.session:
                 return redirect(f'{app_name}:login')
             
-            # Proceed to view
             return view_func(request, *args, **kwargs)
         return wrapper
     return decorator

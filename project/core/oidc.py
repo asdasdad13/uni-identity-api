@@ -85,13 +85,13 @@ class CustomOAuth2Validator(OAuth2Validator):
         if 'affiliations:courses' in scopes:
             self._add_affiliation_data(claims, identity, 'affiliations:courses', ['MOD', 'COURSE'])
         
-        elif 'affiliations:departments' in scopes:
+        if 'affiliations:departments' in scopes:
             self._add_affiliation_data(claims, identity, 'affiliations:departments', ['DEPT'])
         
-        elif 'affiliations:clubs' in scopes:
+        if 'affiliations:clubs' in scopes:
             self._add_affiliation_data(claims, identity, 'affiliations:clubs', ['CLUB'])
         
-        elif 'affiliations' in scopes:
+        if 'affiliations' in scopes:
             self._add_affiliation_data(claims, identity, 'affiliations', ['CLUB', 'MOD', 'COURSE', 'DEPT'])
 
         return claims

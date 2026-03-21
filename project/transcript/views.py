@@ -12,8 +12,8 @@ from core.utils import oauth_required
 APP_NAME = 'transcript'
 
 HOST_BASE_URL = settings.HOST_BASE_URL
-CLIENT_ID = settings.CLUB_DIRECTORY_CLIENT_ID
-CLIENT_SECRET = settings.CLUB_DIRECTORY_CLIENT_SECRET
+CLIENT_ID = settings.TRANSCRIPT_CLIENT_ID
+CLIENT_SECRET = settings.TRANSCRIPT_CLIENT_SECRET
 REDIRECT_URI = f"{HOST_BASE_URL}/{APP_NAME}/callback/"
 
 
@@ -52,13 +52,13 @@ def login(request):
     # Store verifier for later
     request.session['pkce_verifier'] = code_verifier
     request.session['oauth_state'] = secrets.token_urlsafe(16)
-    
+
     # Build authorisation URL
     params = {
         'response_type': 'code',
         'client_id': CLIENT_ID,
         'redirect_uri': REDIRECT_URI,
-        'scope': 'openid profile affiliations:courses',
+        'scope': 'openid identity profile affiliations:courses',
         'state': request.session['oauth_state'],
         'code_challenge': code_challenge,
         'code_challenge_method': 'S256'
@@ -68,15 +68,10 @@ def login(request):
     return redirect(auth_url)
 
 
-def logout(request):
-    """Log user out and revoke user's access token."""
-    request.session.flush()
-    return redirect('clubs:index')
-
-
-def logout_and_revoke(request):
-    """Logout and revoke app access"""
-    access_token = request.session['api_access_token']
+def revoke(request):
+    """Revoke app access"""
+    session_key = f'{APP_NAME}_access_token'
+    access_token = request.session[session_key]
 
     params = {
         'token': access_token,
@@ -85,10 +80,10 @@ def logout_and_revoke(request):
     }
 
     if access_token:
-        # Revoke token
-        requests.post(f"{HOST_BASE_URL}/o/revoke_token/?{urlencode(params)}")
-    
-    return redirect('clubs:index')
+        requests.post(f"{HOST_BASE_URL}/o/revoke_token/", data=params)
+        del request.session[session_key]
+        
+    return redirect('core:index')
 
 
 def callback(request):
@@ -139,12 +134,14 @@ def callback(request):
 
     request.session['courses'] = userinfo.get('affiliations:courses', [])
     request.session['access_token'] = tokens['access_token']
+    # Track specific tokens for revoking authorisation option
+    request.session[f'{APP_NAME}_access_token'] = tokens['access_token']
 
     # Clean up OAuth session data
     del request.session['pkce_verifier']
     del request.session['oauth_state']
 
-    next_url = request.session.pop('oauth_next', 'clubs:index')
+    next_url = request.session.pop('oauth_next', 'transcript:index')
     return redirect(next_url)
 
 

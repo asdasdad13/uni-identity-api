@@ -57,7 +57,7 @@ def login(request):
         'response_type': 'code',
         'client_id': CLIENT_ID,
         'redirect_uri': REDIRECT_URI,
-        'scope': 'openid profile affiliations:courses',
+        'scope': 'openid profile identity affiliations:courses',
         'state': request.session['oauth_state'],
         'code_challenge': code_challenge,
         'code_challenge_method': 'S256'
@@ -67,15 +67,10 @@ def login(request):
     return redirect(auth_url)
 
 
-def logout(request):
-    """Log user out and revoke user's access token."""
-    request.session.flush()
-    return redirect('lms:index')
-
-
-def logout_and_revoke(request):
-    """Logout and revoke app access"""
-    access_token = request.session['api_access_token']
+def revoke(request):
+    """Revoke app access"""
+    session_key = f'{APP_NAME}_access_token'
+    access_token = request.session[session_key]
 
     params = {
         'token': access_token,
@@ -84,10 +79,10 @@ def logout_and_revoke(request):
     }
 
     if access_token:
-        # Revoke token
-        requests.post(f"{HOST_BASE_URL}/o/revoke_token/?{urlencode(params)}")
-    
-    return redirect('lms:index')
+        requests.post(f"{HOST_BASE_URL}/o/revoke_token/", data=params)
+        del request.session[session_key]
+        
+    return redirect('core:index')
 
 
 def callback(request):
@@ -138,6 +133,8 @@ def callback(request):
 
     request.session['courses'] = userinfo.get('affiliations:courses', [])
     request.session['access_token'] = tokens['access_token']
+    # Track specific tokens for revoking authorisation option
+    request.session[f'{APP_NAME}_access_token'] = tokens['access_token']
 
     # Clean up OAuth session data
     del request.session['pkce_verifier']

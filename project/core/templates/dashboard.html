@@ -34,68 +34,74 @@
     </section>
 
     {% if status != 'ADM' %}
-    <section id="unauthorise-apps">
-        <h3>Unauthorise apps</h3>
-        <p>Manually revoke session access for apps here. (This technically does not make sense in a university system context, but it is an integral element of OIDC IdPs.)</p>
-        
-        <table class="revoke-table">
-        <thead>
-            <tr>
-                <th scope="col">Application</th>
-                <th scope="col">Access Level</th>
-                <th scope="col">Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>LMS</td>
-                <td>Identity, Courses, Modules, Profile</td>
-                <td>
-                    <form method="POST" action="{% url 'lms:logout_and_revoke' %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger btn-sm">Revoke Access</button>
-                    </form>
-                </td>
-            </tr>
-            {% if status == 'STU' %}
-
-            <tr>
-                <td>Club Directory</td>
-                <td>Identity, Clubs, Profile</td>
-                <td>
-                    <form method="POST" action="{% url 'clubs:logout_and_revoke' %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger btn-sm">Revoke Access</button>
-                    </form>
-                </td>
-            </tr>
-
-            {% elif status == 'STA' %}
-            <tr>
-                <td>Staff Directory</td>
-                <td>Identity, Courses, Modules, Profile</td>
-                <td>
-                    <form method="POST" action="{% url 'staff:logout_and_revoke' %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger btn-sm">Revoke Access</button>
-                    </form>
-                </td>
-            </tr>
+        <section id="unauthorise-apps">
+            <h3>Unauthorise apps</h3>
+            <p>Manually revoke session access for apps here. (This technically does not make sense in a university system context, but it is an integral element of OIDC IdPs.)</p>
             
-            <tr>
-                <td>Library Card</td>
-                <td>Identity, Profile</td>
-                <td>
-                    <form method="POST" action="{% url 'library:logout_and_revoke' %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger btn-sm">Revoke Access</button>
-                    </form>
-                </td>
-            </tr>
+            {% if request.session.lms_access_token or request.session.clubs_access_token or request.session.staff_access_token or request.session.library_access_token %}
+                <table class="revoke-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Application</th>
+                            <th scope="col">Access Level</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if request.session.lms_access_token %}
+                        <tr>
+                            <td>LMS</td>
+                            <td>Identity, Courses, Modules, Profile</td>
+                            <td>
+                                <form method="POST" action="{% url 'lms:revoke' %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm">Revoke Access</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% if status == 'STU' and request.session.clubs_access_token %}
+                            <tr>
+                                <td>Club Directory</td>
+                                <td>Identity, Clubs, Profile</td>
+                                <td>
+                                    <form method="POST" action="{% url 'clubs:revoke' %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger btn-sm">Revoke Access</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endif %}
+                        {% if status == 'STA' and request.session.staff_access_token %}
+                            <tr>
+                                <td>Staff Directory</td>
+                                <td>Identity, Courses, Modules, Profile</td>
+                                <td>
+                                    <form method="POST" action="{% url 'staff:revoke' %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger btn-sm">Revoke Access</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endif %}
+                        {% if request.session.library_access_token %}
+                            <tr>
+                                <td>Library Card</td>
+                                <td>Identity, Profile</td>
+                                <td>
+                                    <form method="POST" action="{% url 'library:revoke' %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger btn-sm">Revoke Access</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="text-muted">No active third-party application sessions found.</p>
             {% endif %}
-            </tbody>
-    </table>
-    </section>
+        </section>
     {% endif %}
 </div>
 

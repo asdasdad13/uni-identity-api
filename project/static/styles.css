@@ -572,3 +572,7 @@ section#your-courses {
 table tbody tr:nth-of-type(even) {
   background-color: white;
 }
+
+.text-muted {
+  color: grey;
+}
