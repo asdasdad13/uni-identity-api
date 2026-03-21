@@ -115,6 +115,28 @@ class Identity(models.Model):
 
     def __str__(self):
         return self.full_name
+    
+    @property
+    def abbreviated_name(self):
+        """
+        Dynamically generates an abbreviated name if no custom profile exists.
+        e.g., 'Johnathan Smith' -> 'J. Smith'
+        """
+        # Check if they have a custom abbreviation in their Profile
+        profile = getattr(self, 'profile', None)
+        if profile and profile.abbreviated_name:
+            return profile.abbreviated_name
+        
+        # Determine which forenames to use (Preferred > Legal)
+        forenames = (profile.preferred_name if profile and profile.preferred_name 
+                 else self.legal_forenames)
+
+        if forenames and self.legal_surname:
+            # Split names, take first initials, join with dots
+            initials = '. '.join(name[0].upper() for name in forenames.split() if name)
+            return f"{initials}. {self.legal_surname}"
+            
+        return self.username # Fallback if names are missing, usually a superuser
 
 
 class Profile(models.Model):

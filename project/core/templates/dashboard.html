@@ -48,8 +48,8 @@
         </thead>
         <tbody>
             <tr>
-                <td>University LMS</td>
-                <td>Identity, Courses, Profile</td>
+                <td>LMS</td>
+                <td>Identity, Courses, Modules, Profile</td>
                 <td>
                     <form method="POST" action="{% url 'lms:logout_and_revoke' %}">
                         {% csrf_token %}
@@ -57,6 +57,42 @@
                     </form>
                 </td>
             </tr>
+            {% if status == 'STU' %}
+
+            <tr>
+                <td>Club Directory</td>
+                <td>Identity, Clubs, Profile</td>
+                <td>
+                    <form method="POST" action="{% url 'clubs:logout_and_revoke' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm">Revoke Access</button>
+                    </form>
+                </td>
+            </tr>
+
+            {% elif status == 'STA' %}
+            <tr>
+                <td>Staff Directory</td>
+                <td>Identity, Courses, Modules, Profile</td>
+                <td>
+                    <form method="POST" action="{% url 'staff:logout_and_revoke' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm">Revoke Access</button>
+                    </form>
+                </td>
+            </tr>
+            
+            <tr>
+                <td>Library Card</td>
+                <td>Identity, Profile</td>
+                <td>
+                    <form method="POST" action="{% url 'library:logout_and_revoke' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm">Revoke Access</button>
+                    </form>
+                </td>
+            </tr>
+            {% endif %}
             </tbody>
     </table>
     </section>

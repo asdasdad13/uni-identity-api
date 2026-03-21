@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Library Card{% endblock %}
+
+{% block content %}
+<div class="id-card-container">
+    <div class="library-card">
+        <div class="card-header">
+            <h1>University Library Card</h1>
+        </div>
+
+        <div class="card-body">
+            <div class="photo-area">
+                <div class="photo-placeholder">MEMBER PHOTO</div>
+            </div>
+
+            <div class="info-area">
+                <h2 class="user-name">{{ display_name }}</h2>
+                
+                {% if identity.is_abbreviated %}
+                <div class="status-badge">Abbreviated Identity</div>
+                {% endif %}
+
+                <ul class="details-list">
+                    <li><strong>ID:</strong> {{ institutional_id }}</li>
+                    <li><strong>Role:</strong> {{ status }}</li>
+                    <li><strong>Valid Thru:</strong> 2027-09-01</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <div class="barcode-sim">|||| || ||| ||| ||</div>
+            <span class="footer-hint">OFFICIAL UNIVERSITY CREDENTIAL</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

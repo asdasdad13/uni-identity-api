@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}University Club Directory{% endblock %}
+
+{% block content %}
+<h1>Transcript service</h1>
+<div class="transcript-container">
+    <div class="transcript-paper">
+        <div class="transcript-header">
+            <h1>Official Academic Transcript</h1>
+            <p class="institution-name">University</p>
+        </div>
+
+        <section class="student-info">
+            <div class="info-row">
+                <span><strong>Name:</strong> {{ display_name }}</span>
+                <span><strong>Student ID:</strong> {{ institutional_id }}</span>
+            </div>
+            <div class="info-row">
+                <span><strong>Course:</strong> BSc Computer Science</span>
+                <span><strong>Date of Issue:</strong> 21 March 2026</span>
+            </div>
+        </section>
+
+        <table class="transcript-table">
+            <thead>
+                <tr>
+                    <th>Module Code</th>
+                    <th>Module Title</th>
+                    <th>Credits</th>
+                    <th>Grade</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for module in modules %}
+                <tr>
+                    <td>{{ module.affiliation_id }}</td>
+                    <td>{{ module.affiliation_name }}</td>
+                    <td>15</td>
+                    <td>A</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <footer class="transcript-footer">
+            <div class="gpa-box">
+                <strong>Cumulative GPA:</strong> 3.85
+            </div>
+            <p class="notary-text">This document is a digital representation of the official record. Any alteration renders this transcript invalid.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

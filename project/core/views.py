@@ -196,7 +196,7 @@ def get_roles(request):
 
     token = get_token(request)
     headers = {'Authorization': f"Bearer {token}"}
-    url=f"{HOST_BASE_URL}/me/"
+    url=f"{HOST_BASE_URL}/api/me/"
     
     # API call
     response = requests.get(url, headers=headers)

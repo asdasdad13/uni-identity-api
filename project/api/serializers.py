@@ -48,15 +48,16 @@ class DisplayNameSerializer(serializers.ModelSerializer):
             case 'transcript':
                 return obj.full_name
 
-            case 'lms' | 'dashboard' | 'club-directory' | 'staff-directory':
+            case 'lms' | 'dashboard' | 'clubs' | 'staff':
                 # Return preferred if it exists, otherwise fallback to legal
                 profile = getattr(obj, 'profile', None)
 
-                if profile:
-                    pf = getattr(profile, 'preferred_name', None)
-                    return pf if pf else obj.full_name
+                if profile and profile.preferred_name:
+                    return profile.preferred_name
+                
+                return obj.full_name
             
-            case 'library-card':
+            case 'library':
                 return obj.abbreviated_name
             
             case _:
@@ -72,13 +73,13 @@ class DisplayNameSerializer(serializers.ModelSerializer):
 
         if profile:
             request_context = self._get_context()
-            if request_context in ['lms', 'dashboard', 'club-directory', 'staff-directory']:
+            if request_context in ['lms', 'dashboard', 'clubs', 'staff']:
                 return bool(getattr(profile, 'preferred_name', None))
         return False
             
     def get_is_abbreviated(self, obj):
         """Check if the current context is displaying an abbreviated identity."""
-        return self._get_context() == 'library-card'
+        return self._get_context() == 'library'
 
     
 class AffiliationSerializer(serializers.ModelSerializer):
