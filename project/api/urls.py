@@ -8,7 +8,6 @@ from rest_framework_simplejwt.views import (
 
 app_name = 'api'
 
-
 urlpatterns = [
     path('me/', views.IdentityAPIView.as_view(), name='my_identity'),
     path('display-name/', views.DisplayNameAPIView.as_view(), name='display_name'),
@@ -17,6 +16,7 @@ urlpatterns = [
     path('pending-affiliations/', views.PendingAffiliationListAPIView.as_view(), name='pending_affiliations'),
     path('affiliations/<int:pk>/', views.IdentityAffiliationDetailAPIView.as_view(), name='affiliation_detail'),
 
+    # SimpleJWT
     path('token/', views.CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),

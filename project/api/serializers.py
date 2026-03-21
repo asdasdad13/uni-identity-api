@@ -1,8 +1,10 @@
 from rest_framework import serializers
 from core.models import Identity, IdentityAffiliation, Profile, PendingAffiliation
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from drf_spectacular.utils import extend_schema_field
+from drf_spectacular.types import OpenApiTypes
 
-
+# SimpleJWT
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
@@ -21,9 +23,15 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     
 
 class ProfileSerializer(serializers.ModelSerializer):
+    abbreviated_name = serializers.SerializerMethodField()
+
     class Meta:
         model = Profile
         fields = ['preferred_name', 'abbreviated_name']
+    
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_abbreviated_name(self, obj):
+        return obj.abbreviated_name
 
 
 class DisplayNameSerializer(serializers.ModelSerializer):
@@ -36,12 +44,12 @@ class DisplayNameSerializer(serializers.ModelSerializer):
         model = Identity
         fields = ['display_name', 'is_preferred', 'is_abbreviated']
 
-    def _get_context(self):
+    def _get_context(self) -> str:
         """Helper to safely grab request context."""
         # Access the context passed from the view
         return self.context.get('request_context', 'default')
 
-    def get_display_name(self, obj):
+    def get_display_name(self, obj) -> str:
         request_context = self._get_context()
 
         match request_context:
@@ -66,7 +74,7 @@ class DisplayNameSerializer(serializers.ModelSerializer):
     # is_preferred and is_abbreviated only exist for showing off whether
     # the app correctly retrieved the preferred/abbreviated names, or
     # had to use a full name.
-    def get_is_preferred(self, obj):
+    def get_is_preferred(self, obj) -> bool:
         """Check if the current user should display a preferred identity in the current context."""
 
         profile = getattr(obj, 'profile', None)
@@ -77,7 +85,7 @@ class DisplayNameSerializer(serializers.ModelSerializer):
                 return bool(getattr(profile, 'preferred_name', None))
         return False
             
-    def get_is_abbreviated(self, obj):
+    def get_is_abbreviated(self, obj) -> bool:
         """Check if the current context is displaying an abbreviated identity."""
         return self._get_context() == 'library'
 
@@ -97,6 +105,11 @@ class IdentitySerializer(serializers.ModelSerializer):
     affiliations = serializers.SerializerMethodField()
     profile = ProfileSerializer(read_only=True)
     display_name = serializers.SerializerMethodField()
+    full_name = serializers.SerializerMethodField()
+    
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_full_name(self, obj):
+        return obj.full_name
 
     class Meta:
         model = Identity
@@ -105,12 +118,12 @@ class IdentitySerializer(serializers.ModelSerializer):
             'legal_surname', 'status', 'effective_date', 'email', 'profile', 'affiliations'
         ]
 
-    def get_affiliations(self, obj):
+    def get_affiliations(self, obj) -> list[str]:
         """Returns only the active affiliations for this identity."""
         active_affs = obj.affiliations.filter(is_active=True)
         return AffiliationSerializer(active_affs, many=True).data
 
-    def get_display_name(self, obj):
+    def get_display_name(self, obj) -> str:
         """Return suitable display name for user."""
         serializer = DisplayNameSerializer(obj, context=self.context)
         return serializer.data.get('display_name')
@@ -153,12 +166,12 @@ class RosterMemberSerializer(serializers.ModelSerializer):
         model = IdentityAffiliation
         fields = ['institutional_id', 'display_name', 'role', 'is_active', 'is_preferred']
 
-    def get_display_name(self, obj):
+    def get_display_name(self, obj) -> str:
         """Return suitable display name for user."""
         serializer = DisplayNameSerializer(obj.identity, context=self.context)
         return serializer.data.get('display_name')
     
-    def get_is_preferred(self, obj):
+    def get_is_preferred(self, obj) -> bool:
         """Return suitable display name for user."""
         serializer = DisplayNameSerializer(obj.identity, context=self.context)
         return serializer.data.get('is_preferred')
