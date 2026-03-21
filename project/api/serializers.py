@@ -53,9 +53,8 @@ class DisplayNameSerializer(serializers.ModelSerializer):
                 profile = getattr(obj, 'profile', None)
 
                 if profile:
-                    return getattr(profile, 'preferred_name', obj.full_name)
-                
-                return obj.full_name
+                    pf = getattr(profile, 'preferred_name', None)
+                    return pf if pf else obj.full_name
             
             case 'library-card':
                 return obj.abbreviated_name
