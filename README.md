@@ -1,54 +1,42 @@
-To start virtual environment:
+Getting Started
+# 1. Environment Setup
+Create and activate a virtual environment.
 
-`.venv/Scripts/activate`
-
-To deactivate virtual environment:
-
-`deactivate`
-
-# Generate RSA Keys for OIDC
-Before running the application, generate RSA key pairs:
-## Private key
+Windows:
 ```
-openssl genrsa -out oidc_private.key 2048
+python -m venv .venv
+.venv\Scripts\activate
 ```
 
-## Public key from private key
+macOS / Linux:
 ```
-openssl rsa -in oidc_private.key -pubout -out oidc_public.key
+python3 -m venv .venv
+source .venv/bin/activate
 ```
 
-# Install dependencies
+# 2. Dependency Installation
 ```
 pip install -r requirements.txt
 ```
 
-# Run server
+# 3. Security: RSA Key Generation
+The OIDC provider requires an RSA key pair for token signing. Generate these in the project root:
+```
+# Generate Private key
+openssl genrsa -out oidc_private.key 2048
+
+# Generate Public key
+openssl rsa -in oidc_private.key -pubout -out oidc_public.key
+```
+
+# 4. Initialise database
+Initialize the database and prepare the OIDC application registry.
+
+# 5. Run the application
 ```
 python manage.py runserver
 ```
 
-# Run migrations
-To make migrations and migrate:
-
-```
-python manage.py makemigrations
-python manage.py migrate
-```
-
-## Flush database
-```
-python manage.py flush
-```
-
-## Seed the database with dummy data
-Database in source code is already seeded, but you may seed again if you happened to flush it.
-```
-python manage.py seed
-python manage.py setup_oidc_apps
-```
-
-# Run unit tests:
-```
-python manage.py test
-```
+# Testing & Documentation
+- **Unit Tests**: Run `python manage.py test`.
+- **API Documentation**: Once the server is running, visit /api/docs/ for the Swagger UI, get a JWT from /api/token/, and authorise at the top right of the view.
