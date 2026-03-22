@@ -63,8 +63,8 @@ class IdentityAPIView(APIView):
             identity = get_object_or_404(Identity, pk=pk)
             is_owner = (request.user == identity.user)
 
-        request_context = request.headers.get('context', None)
-
+        request_context = request.query_params.get('context') or request.headers.get('context', 'default')
+        
         serializer = IdentitySerializer(
             identity, 
             context={
