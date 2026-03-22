@@ -72,6 +72,18 @@
                                 </td>
                             </tr>
                         {% endif %}
+                        {% if status == 'STU' and request.session.transcript_access_token %}
+                            <tr>
+                                <td>Transcript</td>
+                                <td>Identity, Courses, Profile</td>
+                                <td>
+                                    <form method="POST" action="{% url 'transcript:revoke' %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger btn-sm">Revoke Access</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endif %}
                         {% if status == 'STA' and request.session.staff_access_token %}
                             <tr>
                                 <td>Staff Directory</td>
